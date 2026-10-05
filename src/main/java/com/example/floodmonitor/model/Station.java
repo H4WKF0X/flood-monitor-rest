@@ -4,16 +4,18 @@ public class Station {
     private String id;
     private String stationName;
     private String timestamp;
+    private double waterFlow;
     private double waterLevel;
     private double waterTemperature;
     private String unit;
 
     public Station() {}
 
-    public Station(String id, String stationName, String timestamp, double waterLevel, double waterTemperature, String unit) {
+    public Station(String id, String stationName, String timestamp, double waterFlow,double waterLevel, double waterTemperature, String unit) {
         this.id = id;
         this.stationName = stationName;
         this.timestamp = timestamp;
+        this.waterFlow = waterFlow;
         this.waterLevel = waterLevel;
         this.waterTemperature = waterTemperature;
         this.unit = unit;
@@ -25,6 +27,8 @@ public class Station {
     public void setStationName(String stationName) { this.stationName = stationName; }
     public String getTimestamp() { return timestamp; }
     public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
+    public double getWaterFlow() { return waterFlow; }
+    public void setWaterFlow(double waterFlow) { this.waterFlow = waterFlow; }
     public double getWaterLevel() { return waterLevel; }
     public void setWaterLevel(double waterLevel) { this.waterLevel = waterLevel; }
     public double getWaterTemperature() { return waterTemperature; }

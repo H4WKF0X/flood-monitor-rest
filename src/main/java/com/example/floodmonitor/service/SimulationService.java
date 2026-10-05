@@ -30,6 +30,8 @@ public class SimulationService {
             station.setStationName(STATION_NAMES[i]);
             station.setTimestamp(timestamp);
             station.setWaterLevel(Math.round((0.5 + random.nextDouble() * 4.5) * 100.0) / 100.0);
+            // waterFlow (discharge) grows with waterLevel
+            station.setWaterFlow(Math.round((station.getWaterLevel() * 300 + random.nextDouble() * 100) * 10.0) / 10.0);
             station.setWaterTemperature(Math.round((4.0 + random.nextDouble() * 16.0) * 10.0) / 10.0);
             station.setUnit("m");
             stations.add(station);
