@@ -32,4 +32,9 @@ public class StationController {
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/stations/count")
+    public int getCount() {
+        return simulationService.generateStations().size();
+    }
 }
