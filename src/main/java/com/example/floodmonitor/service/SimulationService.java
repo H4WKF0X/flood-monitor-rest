@@ -28,10 +28,10 @@ public class SimulationService {
     private void generateStations() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-        for (int i = 0; i < STATION_NAMES.length; i++) {
+        for (String stationName : STATION_NAMES) {
             Station station = new Station();
             station.setId(String.valueOf(counter.incrementAndGet()));
-            station.setStationName(STATION_NAMES[i]);
+            station.setStationName(stationName);
             station.setTimestamp(timestamp);
             station.setWaterLevel(Math.round((0.5 + random.nextDouble() * 4.5) * 100.0) / 100.0);
             // waterFlow (discharge) grows with waterLevel

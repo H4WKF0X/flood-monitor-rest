@@ -3,11 +3,10 @@ package com.example.floodmonitor.controller;
 import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.service.SimulationService;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -40,6 +39,7 @@ public class StationController {
     @PostMapping("/stations")
     public ResponseEntity<Station> postStation(@RequestBody Station station) {
         simulationService.addStation(station);
-        return ResponseEntity.status(HttpStatus.CREATED).body(station);
+        URI location = URI.create("/api/v1/stations/" + station.getId());
+        return ResponseEntity.created(location).body(station);
     }
 }
