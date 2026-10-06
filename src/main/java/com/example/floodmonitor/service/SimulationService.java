@@ -5,10 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class SimulationService {
@@ -18,15 +16,21 @@ public class SimulationService {
         "Station Graz", "Station Innsbruck"
     };
 
+    private final List<Station> stations = new ArrayList<>();
+    private final AtomicInteger counter = new AtomicInteger();
+
     private final Random random = new Random();
 
-    public List<Station> generateStations() {
-        List<Station> stations = new ArrayList<>();
+    public SimulationService() {
+        generateStations();
+    }
+
+    private void generateStations() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         for (int i = 0; i < STATION_NAMES.length; i++) {
             Station station = new Station();
-            station.setId(String.valueOf(i + 1));
+            station.setId(String.valueOf(counter.incrementAndGet()));
             station.setStationName(STATION_NAMES[i]);
             station.setTimestamp(timestamp);
             station.setWaterLevel(Math.round((0.5 + random.nextDouble() * 4.5) * 100.0) / 100.0);
@@ -36,12 +40,19 @@ public class SimulationService {
             station.setUnit("m");
             stations.add(station);
         }
+    }
 
-        return stations;
+    public void addStation(Station station) {
+        station.setId(String.valueOf(counter.incrementAndGet()));
+        this.stations.add(station);
+    }
+
+    public List<Station> getStations() {
+        return Collections.unmodifiableList(stations);
     }
 
     public Optional<Station> getStationById(String id) {
-        return generateStations().stream()
+        return getStations().stream()
             .filter(s -> s.getId().equals(id))
             .findFirst();
     }
