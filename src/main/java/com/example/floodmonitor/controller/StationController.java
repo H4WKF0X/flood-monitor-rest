@@ -44,7 +44,7 @@ public class StationController {
     )
     public ResponseEntity<Station> postStation(@RequestBody Station station) {
         simulationService.addStation(station);
-        URI location = URI.create("/api/v1/stations/" + station.getId());
+        URI location = URI.create("/api/v1/stations/" + station.id());
         return ResponseEntity.created(location).body(station);
     }
 }

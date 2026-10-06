@@ -1,12 +1,10 @@
 package com.example.floodmonitor.service;
 
+import com.example.floodmonitor.model.Location;
 import com.example.floodmonitor.model.Station;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class SimulationService {
@@ -16,8 +14,23 @@ public class SimulationService {
         "Station Graz", "Station Innsbruck"
     };
 
+    private static final Map<String, String> STATION_RIVERS = Map.of(
+            "Station Vienna",    "Donau",
+            "Station Linz",      "Donau",
+            "Station Salzburg",  "Salzach",
+            "Station Graz",      "Mur",
+            "Station Innsbruck", "Inn"
+    );
+
+    private static final Map<String, Location> STATION_LOCATIONS = Map.of(
+            "Station Vienna",    new Location(48.21, 16.37),
+            "Station Linz",      new Location(48.31, 14.29),
+            "Station Salzburg",  new Location(47.80, 13.04),
+            "Station Graz",      new Location(47.07, 15.44),
+            "Station Innsbruck", new Location(47.27, 11.39)
+    );
+
     private final List<Station> stations = new ArrayList<>();
-    private final AtomicInteger counter = new AtomicInteger();
 
     private final Random random = new Random();
 
@@ -26,24 +39,23 @@ public class SimulationService {
     }
 
     private void generateStations() {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        for (int i = 0; i < STATION_NAMES.length; i++) {
+            String stationName = STATION_NAMES[i];
+            String id = "ST-00" + (i+1);
+            String river = STATION_RIVERS.get(stationName);
+            Location location = STATION_LOCATIONS.get(stationName);
 
-        for (String stationName : STATION_NAMES) {
-            Station station = new Station();
-            station.setId(String.valueOf(counter.incrementAndGet()));
-            station.setStationName(stationName);
-            station.setTimestamp(timestamp);
-            station.setWaterLevel(Math.round((0.5 + random.nextDouble() * 4.5) * 100.0) / 100.0);
-            // waterFlow (discharge) grows with waterLevel
-            station.setWaterFlow(Math.round((station.getWaterLevel() * 300 + random.nextDouble() * 100) * 10.0) / 10.0);
-            station.setWaterTemperature(Math.round((4.0 + random.nextDouble() * 16.0) * 10.0) / 10.0);
-            station.setUnit("m");
-            stations.add(station);
+            // normal: 150–399 cm, warning: normal + 100-199cm, critical: warning + 80-149cm
+            int normalWaterLevel = random.nextInt(150, 400);
+            int warningWaterLevel = normalWaterLevel + random.nextInt(100, 200);
+            int criticalWaterLevel = warningWaterLevel + random.nextInt(80, 150);
+
+            boolean isActive = true;
+            stations.add(new Station(id, stationName, river, location, normalWaterLevel, warningWaterLevel, criticalWaterLevel, isActive));
         }
     }
 
     public void addStation(Station station) {
-        station.setId(String.valueOf(counter.incrementAndGet()));
         this.stations.add(station);
     }
 
@@ -53,7 +65,7 @@ public class SimulationService {
 
     public Optional<Station> getStationById(String id) {
         return getStations().stream()
-            .filter(s -> s.getId().equals(id))
+            .filter(s -> id.equals(s.id()))
             .findFirst();
     }
 }
