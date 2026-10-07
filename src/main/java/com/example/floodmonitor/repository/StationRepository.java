@@ -21,11 +21,11 @@ public class StationRepository {
     }
 
     public boolean save(Station station) {
-        return this.stations.replace(station.id(), station) == null;
+        return this.stations.replace(station.id(), station) != null;
     }
 
     public boolean saveIfAbsent(Station station) {
-        return this.stations.putIfAbsent(station.id(), station) != null;
+        return this.stations.putIfAbsent(station.id(), station) == null;
     }
 
     public boolean delete(String id) {
