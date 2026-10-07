@@ -38,7 +38,6 @@ public class SimulationService {
     private final StationRepository stationRepository;
     private final MeasurementRepository measurementRepository;
 
-    @Autowired
     public SimulationService(StationRepository  stationRepository, MeasurementRepository measurementRepository) {
         this.stationRepository = stationRepository;
         this.measurementRepository = measurementRepository;
