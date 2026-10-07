@@ -10,13 +10,13 @@ import java.util.concurrent.ConcurrentSkipListSet;
 @Repository
 public class MeasurementRepository {
     private final Map<String, ConcurrentSkipListSet<Measurement>> stationMeasurements = new ConcurrentHashMap<>();
-    private static final Comparator<Measurement> comp = Comparator.comparing(Measurement::timestamp).reversed();
+    private static final Comparator<Measurement> NEWEST_FIRST = Comparator.comparing(Measurement::timestamp).reversed();
 
     // 4 hours (at intervals of 10 seconds)
     private static final int MAX_HISTORY = 1440;
 
     public void saveMeasurement(Measurement measurement) {
-        stationMeasurements.putIfAbsent(measurement.stationId(), new ConcurrentSkipListSet<>(comp));
+        stationMeasurements.putIfAbsent(measurement.stationId(), new ConcurrentSkipListSet<>(NEWEST_FIRST));
         ConcurrentSkipListSet<Measurement> measurementSet = stationMeasurements.get(measurement.stationId());
 
         if (measurementSet.add(measurement)) {

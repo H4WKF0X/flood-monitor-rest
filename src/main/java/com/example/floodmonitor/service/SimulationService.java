@@ -47,7 +47,7 @@ public class SimulationService {
     private void generateStations() {
         for (int i = 0; i < STATION_NAMES.length; i++) {
             String stationName = STATION_NAMES[i];
-            String id = "ST-00" + (i+1);
+            String id = String.format("ST-%03d", i + 1);
             String river = STATION_RIVERS.get(stationName);
             Location location = STATION_LOCATIONS.get(stationName);
 
