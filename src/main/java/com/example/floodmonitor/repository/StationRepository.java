@@ -20,11 +20,11 @@ public class StationRepository {
         return Optional.ofNullable(stations.get(id));
     }
 
-    public boolean save(Station station) {
+    public boolean update(Station station) {
         return this.stations.replace(station.id(), station) != null;
     }
 
-    public boolean saveIfAbsent(Station station) {
+    public boolean create(Station station) {
         return this.stations.putIfAbsent(station.id(), station) == null;
     }
 

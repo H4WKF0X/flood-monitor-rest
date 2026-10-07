@@ -2,6 +2,9 @@ package com.example.floodmonitor.service;
 
 import com.example.floodmonitor.model.Location;
 import com.example.floodmonitor.model.Station;
+import com.example.floodmonitor.repository.MeasurementRepository;
+import com.example.floodmonitor.repository.StationRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -30,11 +33,15 @@ public class SimulationService {
             "Station Innsbruck", new Location(47.27, 11.39)
     );
 
-    private final List<Station> stations = new ArrayList<>();
-
     private final Random random = new Random();
 
-    public SimulationService() {
+    private final StationRepository stationRepository;
+    private final MeasurementRepository measurementRepository;
+
+    @Autowired
+    public SimulationService(StationRepository  stationRepository, MeasurementRepository measurementRepository) {
+        this.stationRepository = stationRepository;
+        this.measurementRepository = measurementRepository;
         generateStations();
     }
 
@@ -51,21 +58,19 @@ public class SimulationService {
             int criticalWaterLevel = warningWaterLevel + random.nextInt(80, 150);
 
             boolean isActive = true;
-            stations.add(new Station(id, stationName, river, location, normalWaterLevel, warningWaterLevel, criticalWaterLevel, isActive));
+            stationRepository.create(new Station(id, stationName, river, location, normalWaterLevel, warningWaterLevel, criticalWaterLevel, isActive));
         }
     }
 
     public void addStation(Station station) {
-        this.stations.add(station);
+        stationRepository.create(station);
     }
 
     public List<Station> getStations() {
-        return Collections.unmodifiableList(stations);
+        return Collections.unmodifiableList(stationRepository.findAll());
     }
 
     public Optional<Station> getStationById(String id) {
-        return getStations().stream()
-            .filter(s -> id.equals(s.id()))
-            .findFirst();
+        return stationRepository.findById(id);
     }
 }
