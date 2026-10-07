@@ -62,12 +62,12 @@ public class SimulationService {
         }
     }
 
-    public void addStation(Station station) {
-        stationRepository.create(station);
+    public boolean addStation(Station station) {
+        return stationRepository.create(station);
     }
 
     public List<Station> getStations() {
-        return Collections.unmodifiableList(stationRepository.findAll());
+        return stationRepository.findAll();
     }
 
     public Optional<Station> getStationById(String id) {

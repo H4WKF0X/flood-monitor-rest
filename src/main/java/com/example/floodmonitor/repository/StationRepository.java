@@ -6,11 +6,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 @Repository
 public class StationRepository {
-    private final Map<String, Station> stations = new ConcurrentHashMap<>();
+    private final Map<String, Station> stations = new ConcurrentSkipListMap<>();
 
     public List<Station> findAll() {
         return List.copyOf(stations.values());

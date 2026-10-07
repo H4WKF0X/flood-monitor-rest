@@ -3,6 +3,7 @@ package com.example.floodmonitor.controller;
 import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.service.SimulationService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +44,8 @@ public class StationController {
             consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }
     )
     public ResponseEntity<Station> postStation(@RequestBody Station station) {
-        simulationService.addStation(station);
+        boolean created = simulationService.addStation(station);
+        if (!created) { return ResponseEntity.status(HttpStatus.CONFLICT).build(); }
         URI location = URI.create("/api/v1/stations/" + station.id());
         return ResponseEntity.created(location).body(station);
     }
