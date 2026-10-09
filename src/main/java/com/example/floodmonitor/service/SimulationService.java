@@ -4,12 +4,13 @@ import com.example.floodmonitor.model.Location;
 import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.repository.MeasurementRepository;
 import com.example.floodmonitor.repository.StationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
+@EnableScheduling
 public class SimulationService {
 
     private static final String[] STATION_NAMES = {
@@ -33,12 +34,13 @@ public class SimulationService {
             "Station Innsbruck", new Location(47.27, 11.39)
     );
 
-    private final Random random = new Random();
+    private final Random random;
 
     private final StationRepository stationRepository;
     private final MeasurementRepository measurementRepository;
 
-    public SimulationService(StationRepository  stationRepository, MeasurementRepository measurementRepository) {
+    public SimulationService(Random random, StationRepository  stationRepository, MeasurementRepository measurementRepository) {
+        this.random = random;
         this.stationRepository = stationRepository;
         this.measurementRepository = measurementRepository;
         generateStations();
