@@ -23,9 +23,9 @@ public class SimulationService {
     private static final double H0 = 0.5;
     private static final double B = 2.0;
 
-    private final double BATTERY_DRAIN_PER_HOUR;
-    private final double BATTERY_CHARGE_PER_HOUR;
     private static final double BATTERY_LOW = 5.0;
+    private final double batteryDrainPerHour;
+    private final double batteryChargePerHour;
 
     private static final double TEMPERATURE_MEAN = 15.0; // μ, in °C
     private static final double TEMPERATURE_PULL = 0.02; // θ, per hour
@@ -65,8 +65,8 @@ public class SimulationService {
         this.warningLevelService = warningLevelService;
         this.rainField = rainField;
 
-        this.BATTERY_DRAIN_PER_HOUR = 100.0 / hoursToDrain;
-        this.BATTERY_CHARGE_PER_HOUR = 100.0 / hoursToCharge;
+        this.batteryDrainPerHour = 100.0 / hoursToDrain;
+        this.batteryChargePerHour = 100.0 / hoursToCharge;
         this.intervalMs = intervalMs;
     }
 
@@ -140,12 +140,12 @@ public class SimulationService {
                 double jitter = 0.9 + 0.2 * random.nextDouble();
 
                 if (status == StationStatus.MAINTENANCE) {
-                    battery = Math.min(100.0, battery + BATTERY_CHARGE_PER_HOUR * hours * jitter);
+                    battery = Math.min(100.0, battery + batteryChargePerHour * hours * jitter);
                     if (battery >= 100.0) {
                         status = StationStatus.ONLINE;
                     }
                 } else {
-                    battery = Math.max(0.0, battery - BATTERY_DRAIN_PER_HOUR * hours * jitter);
+                    battery = Math.max(0.0, battery - batteryDrainPerHour * hours * jitter);
                     if (battery <= BATTERY_LOW) {
                         status = StationStatus.MAINTENANCE;
                     }
