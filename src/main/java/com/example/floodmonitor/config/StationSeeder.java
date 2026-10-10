@@ -6,7 +6,6 @@ import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.Random;
 
 @Component
 public class StationSeeder {
@@ -31,11 +30,15 @@ public class StationSeeder {
             "Station Innsbruck", new Location(47.27, 11.39)
     );
 
-    private final Random random;
+    private static final Map<String, Double> RIVER_WARNING_LEVELS = Map.of(
+            "Donau", 1.75, "Salzach", 1.95, "Mur", 1.85, "Inn", 1.90);
+
+    private static final Map<String, Double> RIVER_CRITICAL_LEVELS = Map.of(
+            "Donau", 2.00, "Salzach", 2.70, "Mur", 2.55, "Inn", 2.65);
+
     private final StationRepository stationRepository;
 
-    public StationSeeder(Random random, StationRepository stationRepository) {
-        this.random = random;
+    public StationSeeder(StationRepository stationRepository) {
         this.stationRepository = stationRepository;
         generateStations();
     }
@@ -47,10 +50,9 @@ public class StationSeeder {
             String river = STATION_RIVERS.get(stationName);
             Location location = STATION_LOCATIONS.get(stationName);
 
-            // normal: 150–399 cm, warning: normal + 100-199cm, critical: warning + 80-149cm
-            int normalWaterLevel = random.nextInt(150, 400);
-            int warningWaterLevel = normalWaterLevel + random.nextInt(100, 200);
-            int criticalWaterLevel = warningWaterLevel + random.nextInt(80, 150);
+            double normalWaterLevel = 150.0;
+            double warningWaterLevel = RIVER_WARNING_LEVELS.get(STATION_RIVERS.get(stationName));
+            double criticalWaterLevel = RIVER_CRITICAL_LEVELS.get(STATION_RIVERS.get(stationName));
 
             boolean isActive = true;
             stationRepository.create(new Station(id, stationName, river, location, normalWaterLevel, warningWaterLevel, criticalWaterLevel, isActive));
