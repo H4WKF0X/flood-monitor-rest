@@ -1,9 +1,7 @@
 package com.example.floodmonitor.config;
 
 import com.example.floodmonitor.model.Location;
-import com.example.floodmonitor.model.Measurement;
 import com.example.floodmonitor.model.Station;
-import com.example.floodmonitor.repository.MeasurementRepository;
 import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.stereotype.Component;
 
