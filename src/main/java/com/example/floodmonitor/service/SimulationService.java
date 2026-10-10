@@ -84,7 +84,7 @@ public class SimulationService {
             List<Station> riverStations = entry.getValue();
 
             double area = RIVER_AREAS_KM2.getOrDefault(river, DEFAULT_AREA_KM2);
-            double baseFlow = area * 0.02;
+            double baseFlow = area * 0.01;
 
             if (!riverCatchments.containsKey(river)) {
                 double k = 0.75 * Math.sqrt(area);
@@ -99,7 +99,7 @@ public class SimulationService {
 
             double averageRain = rainSum / riverStations.size();
 
-            catchment.advance(averageRain, intervalMs);
+            catchment.advance(averageRain * 0.3, intervalMs);
             double discharge = catchment.getDischargeM3s();
 
             double a = baseFlow / 0.67;
