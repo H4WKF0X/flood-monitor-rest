@@ -9,10 +9,8 @@ import com.example.floodmonitor.repository.MeasurementRepository;
 import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
 import java.time.Instant;
 import java.util.*;
 
@@ -40,7 +38,6 @@ public class SimulationService {
 
     private final double intervalMs;
 
-    private final Clock clock;
     private final Random random;
 
     private final StationRepository stationRepository;
@@ -51,12 +48,11 @@ public class SimulationService {
     private final Map<String, Catchment> riverCatchments = new HashMap<>();
     private final Map<String, Measurement> lastMeasurements = new HashMap<>();
 
-    public SimulationService(Clock clock, Random random,
+    public SimulationService(Random random,
                              StationRepository stationRepository, MeasurementRepository measurementRepository,
                              WarningLevelService warningLevelService, RainField rainField,
                              @Value("${simulation.hoursToDrain}") double hoursToDrain, @Value("${simulation.hoursToCharge}") double hoursToCharge,
                              @Value("${simulation.interval}") double intervalMs) {
-        this.clock = clock;
         this.random = random;
 
         this.stationRepository = stationRepository;
@@ -70,13 +66,7 @@ public class SimulationService {
         this.intervalMs = intervalMs;
     }
 
-    @Scheduled(fixedRateString = "${simulation.interval}")
-    public void tick() {
-        List<Station> stations = stationRepository.findAll();
-        step(Instant.now(clock), stations);
-    }
-
-    private void step(Instant timestamp, List<Station> stations) {
+    public void step(Instant timestamp, List<Station> stations) {
         double hours = intervalMs / 3_600_000.0;
 
         rainField.advance(stations);
