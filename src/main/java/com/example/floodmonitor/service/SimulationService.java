@@ -23,12 +23,12 @@ public class SimulationService {
     private static final double H0 = 0.5;
     private static final double B = 2.0;
 
-    private static final double BATTERY_DRAIN_PER_HOUR = 100.0 / (5.5 * 24);
-    private static final double BATTERY_CHARGE_PER_HOUR = 100.0 / 4;
+    private final double BATTERY_DRAIN_PER_HOUR;
+    private final double BATTERY_CHARGE_PER_HOUR;
     private static final double BATTERY_LOW = 5.0;
 
-    private static final double TEMPERATURE_MEAN = 12.0; // μ, in °C
-    private static final double TEMPERATURE_PULL = 0.1; // θ, per hour
+    private static final double TEMPERATURE_MEAN = 15.0; // μ, in °C
+    private static final double TEMPERATURE_PULL = 0.02; // θ, per hour
     private static final double TEMPERATURE_NOISE = 0.5; // σ
 
     private static final Map<String, Double> RIVER_AREAS_KM2 = Map.of(
@@ -54,6 +54,7 @@ public class SimulationService {
     public SimulationService(Clock clock, Random random,
                              StationRepository stationRepository, MeasurementRepository measurementRepository,
                              WarningLevelService warningLevelService, RainField rainField,
+                             @Value("${simulation.hoursToDrain}") double hoursToDrain, @Value("${simulation.hoursToCharge}") double hoursToCharge,
                              @Value("${simulation.interval}") double intervalMs) {
         this.clock = clock;
         this.random = random;
@@ -64,6 +65,8 @@ public class SimulationService {
         this.warningLevelService = warningLevelService;
         this.rainField = rainField;
 
+        this.BATTERY_DRAIN_PER_HOUR = 100.0 / hoursToDrain;
+        this.BATTERY_CHARGE_PER_HOUR = 100.0 / hoursToCharge;
         this.intervalMs = intervalMs;
     }
 
@@ -134,13 +137,15 @@ public class SimulationService {
                 temperature += TEMPERATURE_PULL * (TEMPERATURE_MEAN - temperature) * hours
                         + TEMPERATURE_NOISE * Math.sqrt(hours) * random.nextGaussian();
 
+                double jitter = 0.9 + 0.2 * random.nextDouble();
+
                 if (status == StationStatus.MAINTENANCE) {
-                    battery = Math.min(100.0, battery + BATTERY_CHARGE_PER_HOUR * hours);
+                    battery = Math.min(100.0, battery + BATTERY_CHARGE_PER_HOUR * hours * jitter);
                     if (battery >= 100.0) {
                         status = StationStatus.ONLINE;
                     }
                 } else {
-                    battery = Math.max(0.0, battery - BATTERY_DRAIN_PER_HOUR * hours);
+                    battery = Math.max(0.0, battery - BATTERY_DRAIN_PER_HOUR * hours * jitter);
                     if (battery <= BATTERY_LOW) {
                         status = StationStatus.MAINTENANCE;
                     }
