@@ -4,6 +4,7 @@ import com.example.floodmonitor.hydrodynamics.Catchment;
 import com.example.floodmonitor.hydrodynamics.RainField;
 import com.example.floodmonitor.model.Measurement;
 import com.example.floodmonitor.model.Station;
+import com.example.floodmonitor.model.StationStatus;
 import com.example.floodmonitor.repository.MeasurementRepository;
 import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,14 @@ public class SimulationService {
     private static final double H0 = 0.5;
     private static final double B = 2.0;
 
+    private static final double BATTERY_DRAIN_PER_HOUR = 100.0 / (5.5 * 24);
+    private static final double BATTERY_CHARGE_PER_HOUR = 100.0 / 4;
+    private static final double BATTERY_LOW = 5.0;
+
+    private static final double TEMPERATURE_MEAN = 12.0; // μ, in °C
+    private static final double TEMPERATURE_PULL = 0.1; // θ, per hour
+    private static final double TEMPERATURE_NOISE = 0.5; // σ
+
     private static final Map<String, Double> RIVER_AREAS_KM2 = Map.of(
             "Donau",   100_000.0,
             "Salzach",   4_400.0,
@@ -36,16 +45,23 @@ public class SimulationService {
 
     private final StationRepository stationRepository;
     private final MeasurementRepository measurementRepository;
+    private final WarningLevelService warningLevelService;
     private final RainField rainField;
 
     private final Map<String, Catchment> riverCatchments = new HashMap<>();
+    private final Map<String, Measurement> lastMeasurements = new HashMap<>();
 
-    public SimulationService(Clock clock, Random random, StationRepository  stationRepository, MeasurementRepository measurementRepository, RainField rainField,
+    public SimulationService(Clock clock, Random random,
+                             StationRepository stationRepository, MeasurementRepository measurementRepository,
+                             WarningLevelService warningLevelService, RainField rainField,
                              @Value("${simulation.interval}") double intervalMs) {
         this.clock = clock;
         this.random = random;
+
         this.stationRepository = stationRepository;
         this.measurementRepository = measurementRepository;
+
+        this.warningLevelService = warningLevelService;
         this.rainField = rainField;
 
         this.intervalMs = intervalMs;
@@ -58,6 +74,8 @@ public class SimulationService {
     }
 
     private void step(Instant timestamp, List<Station> stations) {
+        double hours = intervalMs / 3_600_000.0;
+
         rainField.advance(stations);
 
         Map<String, List<Station>> byRiver = new HashMap<>();
@@ -92,9 +110,49 @@ public class SimulationService {
             double discharge = catchment.getDischargeM3s();
 
             double a = baseFlow / 0.67;
-            double waterLevel = H0 + Math.pow(discharge / a, 1 / B);
+            double waterLevel = H0 + Math.pow(discharge / a, 1.0 / B);
 
             for (Station s : riverStations) {
+                if(!s.isActive()) continue;
+
+                Measurement previous = lastMeasurements.get(s.id());
+                if (previous == null) {
+                    previous = measurementRepository.getLastMeasurement(s.id()).orElse(null);
+                }
+
+                double temperature = TEMPERATURE_MEAN;
+                double battery = 100.0;
+                StationStatus status = StationStatus.ONLINE;
+
+                if (previous != null) {
+                    if (previous.status() == StationStatus.OFFLINE) continue;
+                    temperature = previous.temperature();
+                    battery = previous.batteryLevel();
+                    status = previous.status();
+                }
+
+                temperature += TEMPERATURE_PULL * (TEMPERATURE_MEAN - temperature) * hours
+                        + TEMPERATURE_NOISE * Math.sqrt(hours) * random.nextGaussian();
+
+                if (status == StationStatus.MAINTENANCE) {
+                    battery = Math.min(100.0, battery + BATTERY_CHARGE_PER_HOUR * hours);
+                    if (battery >= 100.0) {
+                        status = StationStatus.ONLINE;
+                    }
+                } else {
+                    battery = Math.max(0.0, battery - BATTERY_DRAIN_PER_HOUR * hours);
+                    if (battery <= BATTERY_LOW) {
+                        status = StationStatus.MAINTENANCE;
+                    }
+                }
+
+                double rainMmPerHour = rainField.getRain(s) / hours;
+
+                Measurement measurement = new Measurement(s.id(), timestamp, waterLevel, discharge, rainMmPerHour,
+                        temperature, battery, status, warningLevelService.getWarningLevel(s, waterLevel));
+
+                lastMeasurements.put(s.id(), measurement);
+                measurementRepository.saveMeasurement(measurement);
             }
         }
     }
