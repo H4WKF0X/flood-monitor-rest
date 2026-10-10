@@ -1,65 +1,70 @@
 package com.example.floodmonitor.service;
 
-import com.example.floodmonitor.model.Location;
+import com.example.floodmonitor.hydrodynamics.Catchment;
+import com.example.floodmonitor.hydrodynamics.RainField;
 import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.repository.MeasurementRepository;
 import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.*;
 
 @Service
 @EnableScheduling
 public class SimulationService {
-
-    private static final String[] STATION_NAMES = {
-        "Station Vienna", "Station Linz", "Station Salzburg",
-        "Station Graz", "Station Innsbruck"
-    };
-
-    private static final Map<String, String> STATION_RIVERS = Map.of(
-            "Station Vienna",    "Donau",
-            "Station Linz",      "Donau",
-            "Station Salzburg",  "Salzach",
-            "Station Graz",      "Mur",
-            "Station Innsbruck", "Inn"
+    private static final Map<String, Double> RIVER_AREAS_KM2 = Map.of(
+            "Donau",   100_000.0,
+            "Salzach",   4_400.0,
+            "Mur",       7_000.0,
+            "Inn",       5_800.0
     );
 
-    private static final Map<String, Location> STATION_LOCATIONS = Map.of(
-            "Station Vienna",    new Location(48.21, 16.37),
-            "Station Linz",      new Location(48.31, 14.29),
-            "Station Salzburg",  new Location(47.80, 13.04),
-            "Station Graz",      new Location(47.07, 15.44),
-            "Station Innsbruck", new Location(47.27, 11.39)
-    );
-
+    private final Clock clock;
     private final Random random;
 
     private final StationRepository stationRepository;
     private final MeasurementRepository measurementRepository;
+    private final RainField rainField;
 
-    public SimulationService(Random random, StationRepository  stationRepository, MeasurementRepository measurementRepository) {
+    private final Map<String, Catchment> riverCatchments = new HashMap<>();
+
+    public SimulationService(Clock clock, Random random, StationRepository  stationRepository, MeasurementRepository measurementRepository, RainField rainField) {
+        this.clock = clock;
         this.random = random;
         this.stationRepository = stationRepository;
         this.measurementRepository = measurementRepository;
-        generateStations();
+        this.rainField = rainField;
     }
 
-    private void generateStations() {
-        for (int i = 0; i < STATION_NAMES.length; i++) {
-            String stationName = STATION_NAMES[i];
-            String id = String.format("ST-%03d", i + 1);
-            String river = STATION_RIVERS.get(stationName);
-            Location location = STATION_LOCATIONS.get(stationName);
+    @Scheduled(fixedRateString = "${simulation.interval}")
+    public void tick() {
+        List<Station> stations = stationRepository.findAll();
+        step(Instant.now(clock), stations);
+    }
 
-            // normal: 150–399 cm, warning: normal + 100-199cm, critical: warning + 80-149cm
-            int normalWaterLevel = random.nextInt(150, 400);
-            int warningWaterLevel = normalWaterLevel + random.nextInt(100, 200);
-            int criticalWaterLevel = warningWaterLevel + random.nextInt(80, 150);
+    private void step(Instant timestamp, List<Station> stations) {
+        rainField.advance(stations);
 
-            boolean isActive = true;
-            stationRepository.create(new Station(id, stationName, river, location, normalWaterLevel, warningWaterLevel, criticalWaterLevel, isActive));
+        Map<String, List<Station>> byRiver = new HashMap<>();
+        for (Station s : stations) {
+            if (!byRiver.containsKey(s.river())) {
+                byRiver.put(s.river(), new ArrayList<>());
+            }
+            byRiver.get(s.river()).add(s);
+        }
+
+        Map<String, Catchment> riverCatchments = new HashMap<>();
+
+        for (String river : byRiver.keySet()) {
+            // riverCatchments.put(river, new Catchment());
+        }
+
+        for (Map.Entry<String, List<Station>> entry : byRiver.entrySet()) {
+
         }
     }
 

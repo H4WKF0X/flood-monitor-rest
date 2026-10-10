@@ -13,8 +13,8 @@ These are just temporary notes to document various decisions to make Project doc
 
 ### Rain Model
 
-The model used is a very simplified system which aims to allow for realistic rain per station (with the right configuration),
-instead of trying to create realistic weather.
+The model used is a very simplified system which aims to allow for realistic/interesting rain per 
+station (with the right configuration), instead of trying to create realistic weather.
 
 Rain is simulated as a single circular cell representing a cloud. It can move around the map at a constant speed.
 The model itself is a two-state Markov chain. The states are cell exists (wet) and cel doesn't exist (dry).

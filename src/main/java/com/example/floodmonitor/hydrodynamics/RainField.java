@@ -1,4 +1,4 @@
-package com.example.floodmonitor.rain;
+package com.example.floodmonitor.hydrodynamics;
 
 import com.example.floodmonitor.model.Location;
 import com.example.floodmonitor.model.Station;
