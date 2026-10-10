@@ -31,10 +31,10 @@ public class StationSeeder {
     );
 
     private static final Map<String, Double> RIVER_WARNING_LEVELS = Map.of(
-            "Donau", 1.75, "Salzach", 1.95, "Mur", 1.85, "Inn", 1.90);
+            "Donau", 175.0, "Salzach", 195.0, "Mur", 185.0, "Inn", 190.0);
 
     private static final Map<String, Double> RIVER_CRITICAL_LEVELS = Map.of(
-            "Donau", 2.00, "Salzach", 2.70, "Mur", 2.55, "Inn", 2.65);
+            "Donau", 200.0, "Salzach", 270.0, "Mur", 255.0, "Inn", 265.0);
 
     private final StationRepository stationRepository;
 
@@ -50,6 +50,7 @@ public class StationSeeder {
             String river = STATION_RIVERS.get(stationName);
             Location location = STATION_LOCATIONS.get(stationName);
 
+            // median level of simulation
             double normalWaterLevel = 150.0;
             double warningWaterLevel = RIVER_WARNING_LEVELS.get(STATION_RIVERS.get(stationName));
             double criticalWaterLevel = RIVER_CRITICAL_LEVELS.get(STATION_RIVERS.get(stationName));

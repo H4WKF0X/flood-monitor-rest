@@ -5,6 +5,7 @@ import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Component
+@EnableScheduling
 @ConditionalOnProperty(name = "simulation.enabled", havingValue = "true")
 public class SimulationScheduler {
     private volatile boolean prefillDone = false;
@@ -31,6 +33,7 @@ public class SimulationScheduler {
     public void prefillOnStartup() {
         // simulationService.prefill(from, to);
         prefillDone = true;
+        tick();
     }
 
     @Scheduled(fixedRateString = "${simulation.interval}")

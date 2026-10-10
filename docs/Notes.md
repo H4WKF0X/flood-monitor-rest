@@ -5,8 +5,8 @@ These are just temporary notes to document various decisions to make Project doc
 ## Warning Levels
 
 - double waterLevel negative, NaN or infinite return UNKNOWN
-- latest measurement older than 30s return UNKNOWN (30s is currently hardcoded but should be changed later)
-- an inactive station always returns UNKNOWN, even if its last measurement is younger than the 30s limit
+- latest measurement older than 3 × simulation.interval return UNKNOWN
+- an inactive station always returns UNKNOWN
 - current level is recomputed with the stations current thresholds (matters for patches to stations) 
 
 ## Hydrodynamics
@@ -67,7 +67,7 @@ The catchment is drained once per tick, which is only accurate while the tick is
   groundwater and reaches the river slowly. Set as A × 0.01.
 - **Q, discharge (m³/s):** the water passing the station per second.
   Q = Q_base + (S / k) × A × 1000 / 3600. The factor 1000 / 3600 converts mm per hour on km² into m³/s.
-- **h, water level (m):** the result.
+- **h, water level (cm):** the result calculated in m, stored in cm
 - **h₀:** the level at which the river would stop flowing. Only the height above it (h − h₀) carries
   water, so it shifts every level up or down.
 - **a:** the discharge when the water stands 1 m above h₀. It describes how big the riverbed is: a larger
@@ -90,8 +90,6 @@ The catchment is drained once per tick, which is only accurate while the tick is
   It uses a reaction factor A instead of k, which is the same thing as 1 / k.
 - [Rating curve, Wikipedia](https://en.wikipedia.org/wiki/Rating_curve): the formula for the rating curve
   and typical values for b.
-- [Danube, Wikipedia](https://en.wikipedia.org/wiki/Danube): mean discharge at Vienna (1,920 m³/s), used for the
-  base flow of 0.02 m³/s per km².
 - [Pegel Graz/Mur, BML](https://www.bmluk.gv.at/themen/wasser/wasser-oesterreich/hydrographie/wasser-im-blick-das-messnetz/PegelGrazMur.html):
   example for the catchment area of a station. The areas of the other rivers are rounded values.
 
@@ -119,13 +117,13 @@ average about 95% of the time.
 Source: [Ornstein–Uhlenbeck process, Wikipedia](https://en.wikipedia.org/wiki/Ornstein%E2%80%93Uhlenbeck_process)
 
 
-### Battery and Status about the yearly average temperature in Austrian cities.
+### Battery and Status
 
 The battery drains slowly while a station is online and charges quickly while it's in maintenance.
 The values bellow are the ones used in application.properties
 
-- **Online:** the battery drops from 100% to 5% in 6 days. At 5% the station switches to maintenance.
-- **Maintenance:** the battery charges from 5% back to 100% in 4 hours, then the station is online again.
+- **Online:** the battery drops from 100% to 0% in 6 days. At 5% the station switches to maintenance.
+- **Maintenance:** the battery charges from 0% back to 100% in 4 hours. At 100% the station is online again.
 - **Jitter:** every tick the amount is multiplied with a random factor between 0.9 and 1.1. This makes
   the curve a bit uneven but doesn't really change how long a cycle takes, since it evens out over
   thousands of ticks.

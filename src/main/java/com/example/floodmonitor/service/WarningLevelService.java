@@ -5,6 +5,7 @@ import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.model.WarningLevel;
 import com.example.floodmonitor.repository.MeasurementRepository;
 import com.example.floodmonitor.repository.StationRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -19,11 +20,12 @@ public class WarningLevelService {
     private final MeasurementRepository measurementRepository;
     private final Duration maxAge;
 
-    public WarningLevelService(Clock clock, StationRepository stationRepository,MeasurementRepository measurementRepository) {
+    public WarningLevelService(Clock clock, StationRepository stationRepository, MeasurementRepository measurementRepository,
+                               @Value("${simulation.interval}") double intervalMs) {
         this.clock = clock;
         this.stationRepository = stationRepository;
         this.measurementRepository = measurementRepository;
-        this.maxAge = Duration.ofMillis(30000L);
+        this.maxAge = Duration.ofMillis((long) (intervalMs * 3));
     }
 
     public WarningLevel getWarningLevel(Station station, double waterLevel) {

@@ -8,14 +8,12 @@ import com.example.floodmonitor.model.StationStatus;
 import com.example.floodmonitor.repository.MeasurementRepository;
 import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
 
 @Service
-@EnableScheduling
 public class SimulationService {
     private static final double DEFAULT_AREA_KM2 = 1_000.0;
     private static final double H0 = 0.5;
@@ -46,7 +44,6 @@ public class SimulationService {
     private final RainField rainField;
 
     private final Map<String, Catchment> riverCatchments = new HashMap<>();
-    private final Map<String, Measurement> lastMeasurements = new HashMap<>();
 
     public SimulationService(Random random,
                              StationRepository stationRepository, MeasurementRepository measurementRepository,
@@ -103,15 +100,12 @@ public class SimulationService {
             double discharge = catchment.getDischargeM3s();
 
             double a = baseFlow / 0.67;
-            double waterLevel = H0 + Math.pow(discharge / a, 1.0 / B);
+            double waterLevel = 100 * (H0 + Math.pow(discharge / a, 1.0 / B));
 
             for (Station s : riverStations) {
                 if(!s.isActive()) continue;
 
-                Measurement previous = lastMeasurements.get(s.id());
-                if (previous == null) {
-                    previous = measurementRepository.getLastMeasurement(s.id()).orElse(null);
-                }
+                Measurement previous = measurementRepository.getLastMeasurement(s.id()).orElse(null);
 
                 double temperature = TEMPERATURE_MEAN;
                 double battery = 100.0;
@@ -146,7 +140,6 @@ public class SimulationService {
                 Measurement measurement = new Measurement(s.id(), timestamp, waterLevel, discharge, rainMmPerHour,
                         temperature, battery, status, warningLevelService.getWarningLevel(s, waterLevel));
 
-                lastMeasurements.put(s.id(), measurement);
                 measurementRepository.saveMeasurement(measurement);
             }
         }
