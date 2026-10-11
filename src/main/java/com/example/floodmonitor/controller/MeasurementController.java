@@ -1,6 +1,7 @@
 package com.example.floodmonitor.controller;
 
 import com.example.floodmonitor.dto.MeasurementResponse;
+import com.example.floodmonitor.dto.StatisticsResponse;
 import com.example.floodmonitor.service.MeasurementService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,13 @@ public class MeasurementController {
     @GetMapping("/stations/{id}/measurements")
     public ResponseEntity<List<MeasurementResponse>> getMeasurements(@PathVariable String id) {
         return measurementService.getMeasurements(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/stations/{id}/statistics")
+    public ResponseEntity<StatisticsResponse> getStatistics(@PathVariable String id) {
+        return measurementService.getStatistics(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

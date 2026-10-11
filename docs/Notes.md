@@ -7,6 +7,8 @@ These are just temporary notes to document various decisions to make Project doc
 Don't forget to change MeasurementService and its error handling (in #11, replace the Optional in MeasurementService 
 with a StationNotFoundException so both cases get their own error message (or 204 for "no measurement yet").)
 
+---
+
 ## Warning Levels
 
 - double waterLevel negative, NaN or infinite return UNKNOWN
@@ -18,6 +20,27 @@ with a StationNotFoundException so both cases get their own error message (or 20
 
 Alerts = stations whose current warningLevel is WARNING, CRITICAL or UNKNOWN; UNKNOWN only counts for active stations with measurements.
 Offline stations do not produce alerts.
+
+### Warning and Critical Period Counts
+
+The statistics don't count how many measurements were in warning or critical, since that number
+depends on how long a tick is. They count periods instead.
+
+A period is a stretch of measurements in a row that are all in the same state. The count goes up by one
+at the moment a period starts, so when a measurement is in the state and the one before it wasn't.
+
+- **warningPeriodCount:** counts periods where the water level is at or above the warning level.
+  Critical measurements count as "in warning" too, since critical is above warning.
+- **criticalPeriodCount:** counts periods where the water level is at or above the critical level.
+
+Because of that a flood which goes normal → warning → critical → warning → normal is one warning period
+and one critical period. Without counting critical as warning it would be two warning periods
+(one before and one after the peak), which would be wrong since it's the same flood.
+
+If the level drops out of critical and goes back in during the same flood
+(warning → critical → warning → critical → warning) that's still one warning period, but two critical periods.
+
+---
 
 ## Hydrodynamics
 
