@@ -18,10 +18,6 @@ public class StationService {
         this.warningLevelService = warningLevelService;
     }
 
-    private StationResponse toStationResponse(Station s) {
-        return new StationResponse(s.id(), s.name(), s.river(), s.location(), s.normalWaterLevel(), s.warningWaterLevel(), s.criticalWaterLevel(), s.isActive(), warningLevelService.getCurrentWarningLevel(s));
-    }
-
     public List<StationResponse> getStations() {
         return stationRepository.findAll().stream().map(this::toStationResponse).toList();
     }
@@ -34,4 +30,8 @@ public class StationService {
         return stationRepository.create(station);
     }
 
+
+    private StationResponse toStationResponse(Station s) {
+        return new StationResponse(s.id(), s.name(), s.river(), s.location(), s.normalWaterLevel(), s.warningWaterLevel(), s.criticalWaterLevel(), s.isActive(), warningLevelService.getCurrentWarningLevel(s));
+    }
 }

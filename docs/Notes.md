@@ -2,6 +2,11 @@
 
 These are just temporary notes to document various decisions to make Project documentation easier later
 
+## Random Stuff
+
+Don't forget to change MeasurementService and its error handling (in #11, replace the Optional in MeasurementService 
+with a StationNotFoundException so both cases get their own error message (or 204 for "no measurement yet").)
+
 ## Warning Levels
 
 - double waterLevel negative, NaN or infinite return UNKNOWN

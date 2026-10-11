@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Component
@@ -41,7 +42,7 @@ public class SimulationScheduler {
     @EventListener(ApplicationReadyEvent.class)
     public void prefillOnStartup() {
         List<Station> stations = stationRepository.findAll();
-        simulationService.prefill(warmUp, history, Instant.now(clock), stations);
+        simulationService.prefill(warmUp, history, Instant.now(clock).truncatedTo(ChronoUnit.SECONDS), stations);
         prefillDone = true;
 
     }
@@ -52,6 +53,6 @@ public class SimulationScheduler {
             return;
         }
         List<Station> stations = stationRepository.findAll();
-        simulationService.step(Instant.now(clock), stations);
+        simulationService.step(Instant.now(clock).truncatedTo(ChronoUnit.SECONDS), stations);
     }
 }
