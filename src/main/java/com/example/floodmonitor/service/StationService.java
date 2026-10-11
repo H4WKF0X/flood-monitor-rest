@@ -3,9 +3,11 @@ package com.example.floodmonitor.service;
 import com.example.floodmonitor.dto.StationListResponse;
 import com.example.floodmonitor.dto.StationResponse;
 import com.example.floodmonitor.model.Station;
+import com.example.floodmonitor.model.WarningLevel;
 import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,8 +20,13 @@ public class StationService {
         this.warningLevelService = warningLevelService;
     }
 
-    public StationListResponse getStations() {
-        return new StationListResponse(stationRepository.findAll().stream().map(this::toStationResponse).toList());
+    public StationListResponse getStations(String riverFilter, Boolean isActiveFilter, WarningLevel warningLevelFilter) {
+        List<StationResponse> stationResponses = stationRepository.findAll().stream().map(this::toStationResponse)
+                .filter(s -> riverFilter == null || s.river().equalsIgnoreCase(riverFilter))
+                .filter(s -> isActiveFilter == null || s.isActive() == isActiveFilter)
+                .filter(s -> warningLevelFilter == null || s.currentWarningLevel() == warningLevelFilter)
+                .toList();
+        return new StationListResponse(stationResponses,  stationResponses.size());
     }
 
     public Optional<StationResponse> getStationById(String id) {

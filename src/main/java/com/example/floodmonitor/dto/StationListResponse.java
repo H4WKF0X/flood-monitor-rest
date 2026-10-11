@@ -7,5 +7,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.List;
 
 @JacksonXmlRootElement(localName = "stations")
-public record StationListResponse(@JacksonXmlProperty(localName = "station") @JacksonXmlElementWrapper(useWrapping = false) List<StationResponse> stations) {
+public record StationListResponse(@JacksonXmlProperty(localName = "station") @JacksonXmlElementWrapper(useWrapping = false) List<StationResponse> stations,
+                                  @JacksonXmlProperty(isAttribute = true) int totalCount) {
 }

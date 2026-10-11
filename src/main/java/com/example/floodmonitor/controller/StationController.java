@@ -4,6 +4,7 @@ import com.example.floodmonitor.dto.StationListResponse;
 import com.example.floodmonitor.dto.StationResponse;
 import com.example.floodmonitor.model.Station;
 
+import com.example.floodmonitor.model.WarningLevel;
 import com.example.floodmonitor.service.StationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -11,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/v1",
@@ -25,8 +25,10 @@ public class StationController {
     }
 
     @GetMapping("/stations")
-    public StationListResponse getStations() {
-        return stationService.getStations();
+    public StationListResponse getStations(@RequestParam(name = "river", required = false) String riverFilter,
+                                           @RequestParam(name = "isActive", required = false) Boolean isActiveFilter,
+                                           @RequestParam(name = "warningLevel", required = false) WarningLevel warningLevelFilter) {
+        return stationService.getStations(riverFilter, isActiveFilter, warningLevelFilter);
     }
 
     @GetMapping("/stations/{id}")

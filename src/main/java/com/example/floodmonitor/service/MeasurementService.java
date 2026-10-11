@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Optional;
@@ -30,19 +31,35 @@ public class MeasurementService {
         this.intervalMs = intervalMs;
     }
 
-    public Optional<MeasurementListResponse> getMeasurements(String id) {
+    public Optional<MeasurementListResponse> getMeasurements(String id, Instant fromFilter, Instant toFilter, Integer limit, WarningLevel warningLevelFilter) {
         if (stationRepository.findById(id).isEmpty()) return Optional.empty();
-        return Optional.of(new MeasurementListResponse(measurementRepository.getMeasurementHistory(id).stream().map(this::toMeasurementResponse).toList()));
+        // add fromFiler before toFilter check in #11
+        List<Measurement> filtered = getTimeFilteredMeasurements(id, fromFilter, toFilter).stream()
+                .filter(m -> warningLevelFilter == null || m.warningLevel() == warningLevelFilter)
+                .toList();
+
+        List<MeasurementResponse> responses = filtered.stream()
+                .limit(limit)
+                .map(this::toMeasurementResponse)
+                .toList();
+
+        return Optional.of(new MeasurementListResponse(responses, filtered.size()));
     }
 
     public Optional<MeasurementResponse> getLatestMeasurement(String id){
         return measurementRepository.getLastMeasurement(id).map(this::toMeasurementResponse);
     }
 
-    public Optional<StatisticsResponse> getStatistics(String id) {
+    public Optional<StatisticsResponse> getStatistics(String id, Instant fromFilter, Instant toFilter) {
         if (stationRepository.findById(id).isEmpty()) return Optional.empty();
-        List<Measurement> measurementHistory = measurementRepository.getMeasurementHistory(id);
+        List<Measurement> measurementHistory = getTimeFilteredMeasurements(id, fromFilter, toFilter);
         return Optional.of(computeStatisticsResponse(measurementHistory));
+    }
+
+    private List<Measurement> getTimeFilteredMeasurements(String id, Instant fromFilter, Instant toFilter) {
+        return measurementRepository.getMeasurementHistory(id).stream()
+                .filter(m -> fromFilter == null || !m.timestamp().isBefore(fromFilter))
+                .filter(m -> toFilter == null || !m.timestamp().isAfter(toFilter)).toList();
     }
 
     private MeasurementResponse toMeasurementResponse(Measurement m) {

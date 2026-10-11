@@ -29,7 +29,7 @@ public class AlertService {
         this.warningLevelService = warningLevelService;
     }
 
-    public AlertListResponse getAlerts() {
+    public AlertListResponse getAlerts(String riverFilter, WarningLevel warningLevelFilter) {
         List<AlertResponse> alertResponses = new ArrayList<>();
 
         List<Station> stations = stationRepository.findAll();
@@ -37,11 +37,13 @@ public class AlertService {
             Measurement lastMeasurement = measurementRepository.getLastMeasurement(station.id()).orElse(null);
             WarningLevel warningLevel = warningLevelService.getCurrentWarningLevel(station);
             if (!station.isActive() || lastMeasurement == null || lastMeasurement.status() == StationStatus.OFFLINE
-                    || warningLevel == WarningLevel.NORMAL) continue;
+                    || warningLevel == WarningLevel.NORMAL || (warningLevelFilter != null && warningLevelFilter != warningLevel)) continue;
             alertResponses.add(toAlertResponse(station, lastMeasurement,  warningLevel));
         }
+
         alertResponses.sort(ALERT_COMPARATOR);
-        return new AlertListResponse(alertResponses);
+        alertResponses = alertResponses.stream().filter(a -> riverFilter == null || a.river().equalsIgnoreCase(riverFilter)).toList();
+        return new AlertListResponse(alertResponses, alertResponses.size());
     }
 
     private AlertResponse toAlertResponse(Station s, Measurement m, WarningLevel w) {

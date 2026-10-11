@@ -4,8 +4,9 @@ These are just temporary notes to document various decisions to make Project doc
 
 ## Random Stuff
 
-Don't forget to change MeasurementService and its error handling (in #11, replace the Optional in MeasurementService 
+- Don't forget to change MeasurementService and its error handling (in #11, replace the Optional in MeasurementService 
 with a StationNotFoundException so both cases get their own error message (or 204 for "no measurement yet").)
+- River comparison in route parameters is case-insensitive, warningLevel is case-sensitive
 
 ---
 

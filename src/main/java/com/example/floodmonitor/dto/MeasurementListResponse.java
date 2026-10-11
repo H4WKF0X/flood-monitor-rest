@@ -7,4 +7,5 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.List;
 
 @JacksonXmlRootElement(localName = "measurements")
-public record MeasurementListResponse(@JacksonXmlProperty(localName = "measurement") @JacksonXmlElementWrapper(useWrapping = false) List<MeasurementResponse> measurements) {}
+public record MeasurementListResponse(@JacksonXmlProperty(localName = "measurement") @JacksonXmlElementWrapper(useWrapping = false) List<MeasurementResponse> measurements,
+                                      @JacksonXmlProperty(isAttribute = true) int totalCount) {}
