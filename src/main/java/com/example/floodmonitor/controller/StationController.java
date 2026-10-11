@@ -32,10 +32,8 @@ public class StationController {
     }
 
     @GetMapping("/stations/{id}")
-    public ResponseEntity<StationResponse> getStationById(@PathVariable String id) {
-        return stationService.getStationById(id)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+    public StationResponse getStationById(@PathVariable String id) {
+        return stationService.getStationById(id);
     }
 
     @PostMapping(value="/stations",

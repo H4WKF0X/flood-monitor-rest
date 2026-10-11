@@ -1,5 +1,6 @@
 package com.example.floodmonitor.service;
 
+import com.example.floodmonitor.exception.StationNotFoundException;
 import com.example.floodmonitor.model.Measurement;
 import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.model.WarningLevel;
@@ -36,7 +37,7 @@ public class WarningLevelService {
     }
 
     public WarningLevel getWarningLevel(String stationId, double waterLevel) {
-        return getWarningLevel(stationRepository.findById(stationId).orElseThrow(), waterLevel);
+        return getWarningLevel(stationRepository.findById(stationId).orElseThrow(() -> new StationNotFoundException(stationId)), waterLevel);
     }
 
     public WarningLevel getCurrentWarningLevel(Station station) {
@@ -52,7 +53,7 @@ public class WarningLevelService {
     }
 
     public WarningLevel getCurrentWarningLevel(String stationId) {
-        return getCurrentWarningLevel(stationRepository.findById(stationId).orElseThrow());
+        return getCurrentWarningLevel(stationRepository.findById(stationId).orElseThrow(() -> new StationNotFoundException(stationId)));
     }
 
 }

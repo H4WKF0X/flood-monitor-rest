@@ -3,6 +3,9 @@ package com.example.floodmonitor.service;
 import com.example.floodmonitor.dto.MeasurementListResponse;
 import com.example.floodmonitor.dto.MeasurementResponse;
 import com.example.floodmonitor.dto.StatisticsResponse;
+import com.example.floodmonitor.exception.InvalidRequestException;
+import com.example.floodmonitor.exception.NoMeasurementForStationException;
+import com.example.floodmonitor.exception.StationNotFoundException;
 import com.example.floodmonitor.model.Measurement;
 import com.example.floodmonitor.model.WarningLevel;
 import com.example.floodmonitor.repository.MeasurementRepository;
@@ -15,7 +18,6 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class MeasurementService {
@@ -23,16 +25,20 @@ public class MeasurementService {
     private final StationRepository stationRepository;
 
     private final double intervalMs;
+    private final int maxLimit;
 
     public MeasurementService(MeasurementRepository measurementRepository,  StationRepository stationRepository,
-                              @Value("${simulation.interval}") double intervalMs) {
+                              @Value("${simulation.interval}") double intervalMs,  @Value("${api.measurements.maxLimit}") int maxLimit) {
         this.measurementRepository = measurementRepository;
         this.stationRepository = stationRepository;
         this.intervalMs = intervalMs;
+        this.maxLimit = maxLimit;
     }
 
-    public Optional<MeasurementListResponse> getMeasurements(String id, Instant fromFilter, Instant toFilter, Integer limit, WarningLevel warningLevelFilter) {
-        if (stationRepository.findById(id).isEmpty()) return Optional.empty();
+    public MeasurementListResponse getMeasurements(String id, Instant fromFilter, Instant toFilter, int limit, WarningLevel warningLevelFilter) {
+        stationRepository.findById(id).orElseThrow(() -> new StationNotFoundException(id));
+        if (limit <= 0 || limit > maxLimit) throw new InvalidRequestException("Parameter 'limit' must be between 1 and " +  maxLimit);
+
         // add fromFiler before toFilter check in #11
         List<Measurement> filtered = getTimeFilteredMeasurements(id, fromFilter, toFilter).stream()
                 .filter(m -> warningLevelFilter == null || m.warningLevel() == warningLevelFilter)
@@ -43,21 +49,24 @@ public class MeasurementService {
                 .map(this::toMeasurementResponse)
                 .toList();
 
-        return Optional.of(new MeasurementListResponse(responses, filtered.size()));
+        return new MeasurementListResponse(responses, filtered.size());
     }
 
-    public Optional<MeasurementResponse> getLatestMeasurement(String id){
-        return measurementRepository.getLastMeasurement(id).map(this::toMeasurementResponse);
+    public MeasurementResponse getLatestMeasurement(String id){
+        return measurementRepository.getLastMeasurement(id).map(this::toMeasurementResponse).orElseThrow(() -> new NoMeasurementForStationException(id));
     }
 
-    public Optional<StatisticsResponse> getStatistics(String id, Instant fromFilter, Instant toFilter) {
-        if (stationRepository.findById(id).isEmpty()) return Optional.empty();
+    public StatisticsResponse getStatistics(String id, Instant fromFilter, Instant toFilter) {
+        stationRepository.findById(id).orElseThrow(() -> new StationNotFoundException(id));
         List<Measurement> measurementHistory = getTimeFilteredMeasurements(id, fromFilter, toFilter);
-        return Optional.of(computeStatisticsResponse(measurementHistory));
+        return computeStatisticsResponse(measurementHistory);
     }
 
     private List<Measurement> getTimeFilteredMeasurements(String id, Instant fromFilter, Instant toFilter) {
-        return measurementRepository.getMeasurementHistory(id).stream()
+        if (fromFilter != null && toFilter != null && fromFilter.isAfter(toFilter)) throw new  InvalidRequestException("Parameter 'from' must not be after 'to'");
+        List<Measurement> measurementHistory = measurementRepository.getMeasurementHistory(id);
+        if (measurementHistory.isEmpty()) throw new NoMeasurementForStationException(id);
+        return measurementHistory.stream()
                 .filter(m -> fromFilter == null || !m.timestamp().isBefore(fromFilter))
                 .filter(m -> toFilter == null || !m.timestamp().isAfter(toFilter)).toList();
     }
