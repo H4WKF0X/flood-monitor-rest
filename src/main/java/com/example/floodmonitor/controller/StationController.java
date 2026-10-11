@@ -1,8 +1,9 @@
 package com.example.floodmonitor.controller;
 
+import com.example.floodmonitor.dto.StationResponse;
 import com.example.floodmonitor.model.Station;
-import com.example.floodmonitor.service.SimulationService;
 
+import com.example.floodmonitor.service.StationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,35 +17,34 @@ import java.util.List;
         produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }
 )
 public class StationController {
+    private final StationService stationService;
 
-    private final SimulationService simulationService;
-
-    public StationController(SimulationService simulationService) {
-        this.simulationService = simulationService;
+    public StationController(StationService stationService) {
+        this.stationService = stationService;
     }
 
     @GetMapping("/stations")
-    public List<Station> getStations() {
-        return simulationService.getStations();
+    public List<StationResponse> getStations() {
+        return stationService.getStations();
     }
 
     @GetMapping("/stations/{id}")
-    public ResponseEntity<Station> getStationById(@PathVariable String id) {
-        return simulationService.getStationById(id)
+    public ResponseEntity<StationResponse> getStationById(@PathVariable String id) {
+        return stationService.getStationById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/stations/count")
     public int getCount() {
-        return simulationService.getStations().size();
+        return stationService.getStations().size();
     }
 
     @PostMapping(value="/stations",
             consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }
     )
     public ResponseEntity<Station> postStation(@RequestBody Station station) {
-        boolean created = simulationService.addStation(station);
+        boolean created = stationService.addStation(station);
         if (!created) { return ResponseEntity.status(HttpStatus.CONFLICT).build(); }
         URI location = URI.create("/api/v1/stations/" + station.id());
         return ResponseEntity.created(location).body(station);

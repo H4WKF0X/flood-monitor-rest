@@ -153,16 +153,4 @@ public class SimulationService {
             step(t, stations);
         }
     }
-
-    public boolean addStation(Station station) {
-        return stationRepository.create(station);
-    }
-
-    public List<Station> getStations() {
-        return stationRepository.findAll();
-    }
-
-    public Optional<Station> getStationById(String id) {
-        return stationRepository.findById(id);
-    }
 }
