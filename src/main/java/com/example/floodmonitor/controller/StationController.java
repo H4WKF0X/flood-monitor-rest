@@ -40,8 +40,7 @@ public class StationController {
             consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }
     )
     public ResponseEntity<Station> postStation(@RequestBody Station station) {
-        boolean created = stationService.addStation(station);
-        if (!created) { return ResponseEntity.status(HttpStatus.CONFLICT).build(); }
+        stationService.addStation(station);
         URI location = URI.create("/api/v1/stations/" + station.id());
         return ResponseEntity.created(location).body(station);
     }

@@ -2,6 +2,7 @@ package com.example.floodmonitor.service;
 
 import com.example.floodmonitor.dto.StationListResponse;
 import com.example.floodmonitor.dto.StationResponse;
+import com.example.floodmonitor.exception.StationAlreadyExistsException;
 import com.example.floodmonitor.exception.StationNotFoundException;
 import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.model.WarningLevel;
@@ -34,8 +35,8 @@ public class StationService {
         return stationRepository.findById(id).map(this::toStationResponse).orElseThrow(() -> new StationNotFoundException(id));
     }
 
-    public boolean addStation(Station station) {
-        return stationRepository.create(station);
+    public void addStation(Station station) {
+        if (!stationRepository.create(station)) throw new StationAlreadyExistsException(station.id());
     }
 
 

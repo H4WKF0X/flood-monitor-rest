@@ -29,6 +29,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(status).body(createApiError(status, ex.getMessage(), request.getRequestURI()));
     }
 
+    @ExceptionHandler(StationAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handleAlreadyExists(RuntimeException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        return ResponseEntity.status(status).body(createApiError(status, ex.getMessage(), request.getRequestURI()));
+    }
+
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<ApiError> handleInvalidRequest(InvalidRequestException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;

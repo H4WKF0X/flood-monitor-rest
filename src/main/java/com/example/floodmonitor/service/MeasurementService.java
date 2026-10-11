@@ -39,7 +39,6 @@ public class MeasurementService {
         stationRepository.findById(id).orElseThrow(() -> new StationNotFoundException(id));
         if (limit <= 0 || limit > maxLimit) throw new InvalidRequestException("Parameter 'limit' must be between 1 and " +  maxLimit);
 
-        // add fromFiler before toFilter check in #11
         List<Measurement> filtered = getTimeFilteredMeasurements(id, fromFilter, toFilter).stream()
                 .filter(m -> warningLevelFilter == null || m.warningLevel() == warningLevelFilter)
                 .toList();
@@ -53,6 +52,7 @@ public class MeasurementService {
     }
 
     public MeasurementResponse getLatestMeasurement(String id){
+        stationRepository.findById(id).orElseThrow(() -> new StationNotFoundException(id));
         return measurementRepository.getLastMeasurement(id).map(this::toMeasurementResponse).orElseThrow(() -> new NoMeasurementForStationException(id));
     }
 
@@ -63,9 +63,8 @@ public class MeasurementService {
     }
 
     private List<Measurement> getTimeFilteredMeasurements(String id, Instant fromFilter, Instant toFilter) {
-        if (fromFilter != null && toFilter != null && fromFilter.isAfter(toFilter)) throw new  InvalidRequestException("Parameter 'from' must not be after 'to'");
+        if (fromFilter != null && toFilter != null && fromFilter.isAfter(toFilter)) throw new InvalidRequestException("Parameter 'from' must not be after 'to'");
         List<Measurement> measurementHistory = measurementRepository.getMeasurementHistory(id);
-        if (measurementHistory.isEmpty()) throw new NoMeasurementForStationException(id);
         return measurementHistory.stream()
                 .filter(m -> fromFilter == null || !m.timestamp().isBefore(fromFilter))
                 .filter(m -> toFilter == null || !m.timestamp().isAfter(toFilter)).toList();
