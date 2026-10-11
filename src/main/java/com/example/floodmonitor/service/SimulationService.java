@@ -10,6 +10,7 @@ import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -108,7 +109,7 @@ public class SimulationService {
                 Measurement previous = measurementRepository.getLastMeasurement(s.id()).orElse(null);
 
                 double temperature = TEMPERATURE_MEAN;
-                double battery = 100.0;
+                double battery = BATTERY_LOW + (100.0 - BATTERY_LOW) * random.nextDouble();
                 StationStatus status = StationStatus.ONLINE;
 
                 if (previous != null) {
@@ -142,6 +143,14 @@ public class SimulationService {
 
                 measurementRepository.saveMeasurement(measurement);
             }
+        }
+    }
+
+    public void prefill(Duration warmUp, Duration history, Instant now, List<Station> stations) {
+        Instant start = now.minus(history).minus(warmUp);
+
+        for (Instant t = start; !t.isAfter(now); t = t.plusMillis((long) intervalMs)) {
+            step(t, stations);
         }
     }
 

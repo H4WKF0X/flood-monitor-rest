@@ -2,6 +2,7 @@ package com.example.floodmonitor.service;
 
 import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.repository.StationRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -10,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -23,17 +25,25 @@ public class SimulationScheduler {
     private final SimulationService simulationService;
     private final StationRepository stationRepository;
 
-    public SimulationScheduler(Clock clock, SimulationService simulationService,  StationRepository stationRepository) {
+    private final Duration warmUp;
+    private final Duration history;
+
+    public SimulationScheduler(Clock clock, SimulationService simulationService,  StationRepository stationRepository,
+                               @Value("${simulation.prefillWarmUp}") Duration warmUp, @Value("${simulation.prefillHistory}") Duration history) {
         this.clock = clock;
         this.simulationService = simulationService;
         this.stationRepository = stationRepository;
+
+        this.warmUp = warmUp;
+        this.history = history;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void prefillOnStartup() {
-        // simulationService.prefill(from, to);
+        List<Station> stations = stationRepository.findAll();
+        simulationService.prefill(warmUp, history, Instant.now(clock), stations);
         prefillDone = true;
-        tick();
+
     }
 
     @Scheduled(fixedRateString = "${simulation.interval}")

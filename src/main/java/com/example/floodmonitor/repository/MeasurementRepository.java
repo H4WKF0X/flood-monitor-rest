@@ -1,8 +1,10 @@
 package com.example.floodmonitor.repository;
 
 import com.example.floodmonitor.model.Measurement;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -12,15 +14,18 @@ public class MeasurementRepository {
     private final Map<String, ConcurrentSkipListSet<Measurement>> stationMeasurements = new ConcurrentHashMap<>();
     private static final Comparator<Measurement> NEWEST_FIRST = Comparator.comparing(Measurement::timestamp).reversed();
 
-    // 4 hours (at intervals of 10 seconds)
-    private static final int MAX_HISTORY = 1440;
+    private final int maxHistory;
+
+    public MeasurementRepository(@Value("${simulation.interval}") double intervalMs, @Value("${simulation.historyWindow}") Duration historyWindow) {
+        this.maxHistory = Math.max(1, (int) (historyWindow.toMillis() / intervalMs));
+    }
 
     public void saveMeasurement(Measurement measurement) {
         stationMeasurements.putIfAbsent(measurement.stationId(), new ConcurrentSkipListSet<>(NEWEST_FIRST));
         ConcurrentSkipListSet<Measurement> measurementSet = stationMeasurements.get(measurement.stationId());
 
         if (measurementSet.add(measurement)) {
-            int excess = measurementSet.size() - MAX_HISTORY;
+            int excess = measurementSet.size() - maxHistory;
             for (int i = 0; i < excess; i++) {
                 measurementSet.pollLast();
             }
