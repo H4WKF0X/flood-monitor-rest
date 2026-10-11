@@ -14,6 +14,11 @@ with a StationNotFoundException so both cases get their own error message (or 20
 - an inactive station always returns UNKNOWN
 - current level is recomputed with the stations current thresholds (matters for patches to stations) 
 
+### Alerts
+
+Alerts = stations whose current warningLevel is WARNING, CRITICAL or UNKNOWN; UNKNOWN only counts for active stations with measurements.
+Offline stations do not produce alerts.
+
 ## Hydrodynamics
 
 The following sections describe what Math/Models are used in the simulation to generate a Measurement. 
