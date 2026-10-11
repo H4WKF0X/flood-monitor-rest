@@ -1,14 +1,11 @@
 package com.example.floodmonitor.controller;
 
-import com.example.floodmonitor.dto.AlertResponse;
+import com.example.floodmonitor.dto.AlertListResponse;
 import com.example.floodmonitor.service.AlertService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping(value = "/api/v1",
@@ -22,7 +19,7 @@ public class AlertController {
     }
 
     @GetMapping("/alerts")
-    public List<AlertResponse> getAlerts() {
+    public AlertListResponse getAlerts() {
         return alertService.getAlerts();
     }
 }

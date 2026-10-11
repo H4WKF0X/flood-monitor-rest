@@ -6,7 +6,6 @@ import com.example.floodmonitor.model.Measurement;
 import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.model.StationStatus;
 import com.example.floodmonitor.repository.MeasurementRepository;
-import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -39,21 +38,18 @@ public class SimulationService {
 
     private final Random random;
 
-    private final StationRepository stationRepository;
     private final MeasurementRepository measurementRepository;
     private final WarningLevelService warningLevelService;
     private final RainField rainField;
 
     private final Map<String, Catchment> riverCatchments = new HashMap<>();
 
-    public SimulationService(Random random,
-                             StationRepository stationRepository, MeasurementRepository measurementRepository,
+    public SimulationService(Random random, MeasurementRepository measurementRepository,
                              WarningLevelService warningLevelService, RainField rainField,
                              @Value("${simulation.hoursToDrain}") double hoursToDrain, @Value("${simulation.hoursToCharge}") double hoursToCharge,
                              @Value("${simulation.interval}") double intervalMs) {
         this.random = random;
 
-        this.stationRepository = stationRepository;
         this.measurementRepository = measurementRepository;
 
         this.warningLevelService = warningLevelService;

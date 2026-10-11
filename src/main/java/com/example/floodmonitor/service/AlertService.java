@@ -1,5 +1,6 @@
 package com.example.floodmonitor.service;
 
+import com.example.floodmonitor.dto.AlertListResponse;
 import com.example.floodmonitor.dto.AlertResponse;
 import com.example.floodmonitor.model.Measurement;
 import com.example.floodmonitor.model.Station;
@@ -28,7 +29,7 @@ public class AlertService {
         this.warningLevelService = warningLevelService;
     }
 
-    public List<AlertResponse> getAlerts() {
+    public AlertListResponse getAlerts() {
         List<AlertResponse> alertResponses = new ArrayList<>();
 
         List<Station> stations = stationRepository.findAll();
@@ -40,7 +41,7 @@ public class AlertService {
             alertResponses.add(toAlertResponse(station, lastMeasurement,  warningLevel));
         }
         alertResponses.sort(ALERT_COMPARATOR);
-        return alertResponses;
+        return new AlertListResponse(alertResponses);
     }
 
     private AlertResponse toAlertResponse(Station s, Measurement m, WarningLevel w) {

@@ -1,5 +1,6 @@
 package com.example.floodmonitor.service;
 
+import com.example.floodmonitor.dto.MeasurementListResponse;
 import com.example.floodmonitor.dto.MeasurementResponse;
 import com.example.floodmonitor.dto.StatisticsResponse;
 import com.example.floodmonitor.model.Measurement;
@@ -29,9 +30,9 @@ public class MeasurementService {
         this.intervalMs = intervalMs;
     }
 
-    public Optional<List<MeasurementResponse>> getMeasurements(String id) {
+    public Optional<MeasurementListResponse> getMeasurements(String id) {
         if (stationRepository.findById(id).isEmpty()) return Optional.empty();
-        return Optional.of(measurementRepository.getMeasurementHistory(id).stream().map(this::toMeasurementResponse).toList());
+        return Optional.of(new MeasurementListResponse(measurementRepository.getMeasurementHistory(id).stream().map(this::toMeasurementResponse).toList()));
     }
 
     public Optional<MeasurementResponse> getLatestMeasurement(String id){

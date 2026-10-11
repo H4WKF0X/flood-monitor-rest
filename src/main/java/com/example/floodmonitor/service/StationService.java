@@ -1,11 +1,11 @@
 package com.example.floodmonitor.service;
 
+import com.example.floodmonitor.dto.StationListResponse;
 import com.example.floodmonitor.dto.StationResponse;
 import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,8 +18,8 @@ public class StationService {
         this.warningLevelService = warningLevelService;
     }
 
-    public List<StationResponse> getStations() {
-        return stationRepository.findAll().stream().map(this::toStationResponse).toList();
+    public StationListResponse getStations() {
+        return new StationListResponse(stationRepository.findAll().stream().map(this::toStationResponse).toList());
     }
 
     public Optional<StationResponse> getStationById(String id) {

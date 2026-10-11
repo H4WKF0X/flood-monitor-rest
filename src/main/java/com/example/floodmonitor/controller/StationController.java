@@ -1,5 +1,6 @@
 package com.example.floodmonitor.controller;
 
+import com.example.floodmonitor.dto.StationListResponse;
 import com.example.floodmonitor.dto.StationResponse;
 import com.example.floodmonitor.model.Station;
 
@@ -24,7 +25,7 @@ public class StationController {
     }
 
     @GetMapping("/stations")
-    public List<StationResponse> getStations() {
+    public StationListResponse getStations() {
         return stationService.getStations();
     }
 
@@ -33,11 +34,6 @@ public class StationController {
         return stationService.getStationById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/stations/count")
-    public int getCount() {
-        return stationService.getStations().size();
     }
 
     @PostMapping(value="/stations",
