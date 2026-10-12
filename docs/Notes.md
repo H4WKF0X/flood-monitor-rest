@@ -4,9 +4,15 @@ These are just temporary notes to document various decisions to make Project doc
 
 ## Random Stuff
 
-- Don't forget to change MeasurementService and its error handling (in #11, replace the Optional in MeasurementService 
-with a StationNotFoundException so both cases get their own error message (or 204 for "no measurement yet").)
 - River comparison in route parameters is case-insensitive, warningLevel is case-sensitive
+
+---
+
+## Error Handling (notable things)
+
+- /latest: for unknown station returns 404 'No station...'
+- /latest: station without measurements returns 404 'No measurements...'
+- history/statistics return empty results instead of an error.
 
 ---
 
