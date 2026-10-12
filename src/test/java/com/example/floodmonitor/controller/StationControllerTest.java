@@ -1,11 +1,9 @@
 package com.example.floodmonitor.controller;
 
-import com.example.floodmonitor.FixedClockConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -14,8 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(properties = "simulation.enabled=false")
 @AutoConfigureMockMvc
-@Import(FixedClockConfig.class)
-public class StationControllerTest {
+class StationControllerTest {
     @Autowired
     MockMvc mockMvc;
 
@@ -52,11 +49,11 @@ public class StationControllerTest {
 
     @Test
     void unsupportedAcceptHeaderReturns406() throws Exception {
-        mockMvc.perform(get("/api/v1/stations/ST-999").accept("text/csv"))
+        mockMvc.perform(get("/api/v1/stations").accept("text/csv"))
                 .andExpect(status().isNotAcceptable())
                 .andExpect(jsonPath("$.status").value(406))
                 .andExpect(jsonPath("$.error").value("Not Acceptable"))
-                .andExpect(jsonPath("$.path").value("/api/v1/stations/ST-999"));
+                .andExpect(jsonPath("$.path").value("/api/v1/stations"));
 
     }
 }
