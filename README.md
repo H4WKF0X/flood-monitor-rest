@@ -26,12 +26,37 @@ fixed clock, so they don't depend on random values or the current time.
 All settings are in `src/main/resources/application.properties`. The file contains no secrets.
 Values can be overridden at startup, for example `./gradlew bootRun --args='--server.port=8081'`.
 
-- **simulation.enabled:** switches the simulation on or off
-- **simulation.interval:** time between two measurements in ms. Keep it at 60000 or lower, the rain model needs short ticks.
-- **simulation.historyWindow:** how long measurements are kept
-- **simulation.prefillHistory / prefillWarmUp:** history simulated at startup, and the warm-up before it
-- **api.measurements.defaultLimit / maxLimit:** default and maximum `limit` for the measurement history
-- **all other simulation values:** battery and rain model
+```properties
+server.port=8080
+
+# time between two measurements in ms, preferably keep it at 60000 or lower
+simulation.enabled=true
+simulation.interval=60000
+
+# measurements kept in memory, and the history simulated at startup after a warm-up
+simulation.historyWindow=7d
+simulation.prefillHistory=7d
+simulation.prefillWarmUp=30d
+
+# hours for a full battery drain and a full charge
+simulation.hoursToDrain=144
+simulation.hoursToCharge=4
+
+# rain cells: average dry time and lifetime in ms, intensity in mm/h, size, speed and map borders
+simulation.meanDryMs=43200000
+simulation.meanLifetimeMs=86400000
+simulation.meanIntensity=2.5
+simulation.radiusKm=100
+simulation.speedKmH=30
+simulation.minLat=45.5
+simulation.maxLat=49.9
+simulation.minLon=8.2
+simulation.maxLon=18.5
+
+# default and maximum limit for the measurement history
+api.measurements.defaultLimit=20160
+api.measurements.maxLimit=20160
+```
 
 ## API
 
