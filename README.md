@@ -93,5 +93,8 @@ warning level. It switches between JSON and XML and updates every 30 seconds.
 ## Documentation
 
 - [Architecture and data model](docs/architecture.md)
+- [Simulation](docs/simulation.md)
+- [Fragestellungen](docs/fragestellungen.md)
+- [Cheatsheet and reflection](docs/cheatsheet.md)
 - [API requests](docs/api-requests.md)
 - [OpenAPI specification](docs/openapi.yaml)
