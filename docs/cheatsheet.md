@@ -7,7 +7,7 @@ along the way and how they were solved.
 
 The task is a REST API for a flood early warning system. Simulated stations create measurements, and the API
 provides stations, measurements, statistics and alerts in JSON and XML. A jQuery web client shows the data, and the
-API is documented with OpenAPI. The full task is in [TASK.md](../TASK.md).
+API is documented with OpenAPI.
 
 ## Reproducing the Work
 
