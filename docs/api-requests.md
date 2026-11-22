@@ -1,6 +1,6 @@
 # API Requests
 
-Start the application before you run the commands (`./gradlew bootRun`).
+Start the application before you run the commands (`./gradlew :server:bootRun`).
 All commands use `http://localhost:8080`. The `-i` option shows the status line and the headers.
 `scripts/success-cases.sh` and `scripts/error-cases.sh` run the same requests all at once in JSON and XML.
 

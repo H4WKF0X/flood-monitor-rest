@@ -31,7 +31,7 @@ The simulation does not use the API. It writes the measurements directly into th
 | `dto` | Response classes the API returns, and `ApiError` |
 | `exception` | Custom exceptions and `GlobalExceptionHandler` |
 | `config` | Beans (`Clock`, `Random`, XML converter), OpenAPI info and `StationSeeder` |
-| `resources/static` | Web client: `index.html`, `css/style.css`, `js/app.js` |
+| `server/src/main/resources/static` | Web client: `index.html`, `css/style.css`, `js/app.js` |
 
 ## Data Model
 

@@ -9,7 +9,7 @@ client shows them in the browser. Built with Java 17, Spring Boot 3.2 and Gradle
 You need Java 17 or newer. The Gradle wrapper is included.
 
 ```bash
-./gradlew bootRun
+./gradlew :server:bootRun
 ```
 
 ```bash
@@ -23,8 +23,8 @@ fixed clock, so they don't depend on random values or the current time.
 
 ## Configuration
 
-All settings are in `src/main/resources/application.properties`. The file contains no secrets.
-Values can be overridden at startup, for example `./gradlew bootRun --args='--server.port=8081'`.
+All settings are in `server/src/main/resources/application.properties`. The file contains no secrets.
+Values can be overridden at startup, for example `./gradlew :server:bootRun --args='--server.port=8081'`.
 
 ```properties
 server.port=8080
@@ -84,7 +84,7 @@ The full documentation is in Swagger UI and [docs/openapi.yaml](docs/openapi.yam
 
 ## Web Client
 
-The client is in `src/main/resources/static`. It lists the stations with their warning level, shows the latest
+The client is in `server/src/main/resources/static`. It lists the stations with their warning level, shows the latest
 measurement, statistics, a chart and the history table of the selected station, and can filter by time range and
 warning level. It switches between JSON and XML and updates every 30 seconds.
 
