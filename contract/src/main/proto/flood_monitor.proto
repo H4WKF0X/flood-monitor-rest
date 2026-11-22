@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.example.floodmonitor.grpc.v1";
+
+package floodmonitor.v1;
+import "google/protobuf/timestamp.proto";
+
+service FloodMonitorService {
+  rpc ListStations(ListStationsRequest) returns (ListStationsResponse);
+  rpc GetStation(GetStationRequest) returns (Station);
+}
+
+message ListStationsRequest {
+  string river = 1;
+  optional bool is_active = 2;
+  optional WarningLevel warning_level = 3;
+}
+
+message ListStationsResponse {
+  repeated Station stations = 1;
+  int32 totalCount = 2;
+}
+
+message GetStationRequest {
+  string station_id = 1;
+}
+
+message Station {
+  string id = 1;
+  string name = 2;
+  string river = 3;
+  Location location = 4;
+  double normal_water_level = 5;
+  double warning_water_level = 6;
+  double critical_water_level = 7;
+  bool is_active = 8;
+  WarningLevel warning_level = 9;
+}
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+enum WarningLevel {
+  WARNING_LEVEL_UNSPECIFIED = 0;
+  WARNING_LEVEL_NORMAL = 1;
+  WARNING_LEVEL_WARNING = 2;
+  WARNING_LEVEL_CRITICAL = 3;
+  WARNING_LEVEL_UNKNOWN = 4;
+}
