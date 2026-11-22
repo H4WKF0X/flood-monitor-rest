@@ -11,6 +11,8 @@ service FloodMonitorService {
   rpc GetLatestMeasurement(GetLatestMeasurementRequest) returns (Measurement);
   rpc ListStations(ListStationsRequest) returns (ListStationsResponse);
   rpc GetStation(GetStationRequest) returns (Station);
+  rpc ListAlerts(ListAlertsRequest) returns (ListAlertsResponse);
+  rpc SubscribeMeasurements(SubscribeMeasurementsRequest) returns (stream Measurement);
 }
 
 message ListMeasurementsRequest {
@@ -67,6 +69,34 @@ message Station {
   double critical_water_level = 7;
   bool is_active = 8;
   WarningLevel warning_level = 9;
+}
+
+message ListAlertsRequest {
+  string river = 1;
+  optional WarningLevel warning_level = 2;
+}
+
+message ListAlertsResponse {
+  repeated Alert alerts = 1;
+  int32 total_count = 2;
+}
+
+message Alert {
+  string id = 1;
+  string name = 2;
+  string river = 3;
+  Location location = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  double normal_water_level = 6;
+  double warning_water_level = 7;
+  double critical_water_level = 8;
+  double water_level = 9;
+  WarningLevel warning_level = 10;
+}
+
+message SubscribeMeasurementsRequest {
+  string station_id = 1;
+  optional WarningLevel warning_level = 2;
 }
 
 message Location {
