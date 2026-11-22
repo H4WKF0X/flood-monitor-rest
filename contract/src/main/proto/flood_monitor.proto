@@ -7,8 +7,39 @@ package floodmonitor.v1;
 import "google/protobuf/timestamp.proto";
 
 service FloodMonitorService {
+  rpc ListMeasurements(ListMeasurementsRequest) returns (ListMeasurementsResponse);
+  rpc GetLatestMeasurement(GetLatestMeasurementRequest) returns (Measurement);
   rpc ListStations(ListStationsRequest) returns (ListStationsResponse);
   rpc GetStation(GetStationRequest) returns (Station);
+}
+
+message ListMeasurementsRequest {
+  string station_id = 1;
+  optional google.protobuf.Timestamp start_time = 2;
+  optional google.protobuf.Timestamp end_time = 3;
+  optional int32 limit = 4;
+  optional WarningLevel warning_level = 5;
+}
+
+message ListMeasurementsResponse {
+  repeated Measurement measurements = 1;
+  int32 total_count = 2;
+}
+
+message GetLatestMeasurementRequest {
+  string station_id = 1;
+}
+
+message Measurement {
+  string station_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  double water_level = 3;
+  double flow_rate = 4;
+  double rainfall = 5;
+  double temperature = 6;
+  double battery_level = 7;
+  StationStatus station_status = 8;
+  WarningLevel warning_level = 9;
 }
 
 message ListStationsRequest {
@@ -19,7 +50,7 @@ message ListStationsRequest {
 
 message ListStationsResponse {
   repeated Station stations = 1;
-  int32 totalCount = 2;
+  int32 total_count = 2;
 }
 
 message GetStationRequest {
@@ -41,6 +72,13 @@ message Station {
 message Location {
   double latitude = 1;
   double longitude = 2;
+}
+
+enum StationStatus {
+  STATION_STATUS_UNSPECIFIED = 0;
+  STATION_STATUS_ONLINE = 1;
+  STATION_STATUS_MAINTENANCE = 2;
+  STATION_STATUS_OFFLINE = 3;
 }
 
 enum WarningLevel {
