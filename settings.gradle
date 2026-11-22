@@ -1,3 +1,4 @@
 rootProject.name = 'floodmonitor'
 
 include 'server'
+include 'contract'
