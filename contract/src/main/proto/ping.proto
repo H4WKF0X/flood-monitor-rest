@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.example.floodmonitor.grpc.test";
+
+package test;
+
+service Coordinator {
+  rpc IsReachable (PingRequest) returns (PingResponse);
+}
+
+message PingRequest {
+  string ip = 1;
+}
+
+message PingResponse {
+  bool reached = 1;
+}
+
