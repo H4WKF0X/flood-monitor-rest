@@ -1,120 +1,252 @@
 syntax = "proto3";
 
-option java_multiple_files = true;
-option java_package = "com.example.floodmonitor.grpc.v1";
-
 package floodmonitor.v1;
 import "google/protobuf/timestamp.proto";
 
+option java_multiple_files = true;
+option java_package = "com.example.floodmonitor.grpc.v1";
+
 service FloodMonitorService {
+  // Lists the measurements of a station, optionally filtered by `start_time`, `end_time` and
+  // `warning_level`. Results are ordered by timestamp, oldest first. `limit` keeps the first N results.
+  // Filters are applied before `limit`.
   rpc ListMeasurements(ListMeasurementsRequest) returns (ListMeasurementsResponse);
+
+  // Gets the latest measurement of a station.
   rpc GetLatestMeasurement(GetLatestMeasurementRequest) returns (Measurement);
+
+  // Lists stations, optionally filtered by `river`, `is_active` and `warning_level`.
   rpc ListStations(ListStationsRequest) returns (ListStationsResponse);
+
+  // Gets a station.
   rpc GetStation(GetStationRequest) returns (Station);
+
+  // Lists alerts, optionally filtered by `river` and `warning_level`.
   rpc ListAlerts(ListAlertsRequest) returns (ListAlertsResponse);
+
+  // Streams new measurements of a station as they are created, optionally filtered by `warning_level`.
+  // Only measurements created after the subscription starts are sent.
+  // The stream stays open without messages while the station is inactive or offline.
   rpc SubscribeMeasurements(SubscribeMeasurementsRequest) returns (stream Measurement);
 }
 
+// Request for ListMeasurements.
 message ListMeasurementsRequest {
+  // Required. ID of the station, like `ST-001`.
   string station_id = 1;
-  optional google.protobuf.Timestamp start_time = 2;
-  optional google.protobuf.Timestamp end_time = 3;
+
+  // Optional. Only measurements at or after this timestamp. Not set means no filter.
+  google.protobuf.Timestamp start_time = 2;
+
+  // Optional. Only measurements at or before this timestamp. Not set means no filter.
+  google.protobuf.Timestamp end_time = 3;
+
+  // Optional. Maximum number of measurements, from 1 to 1000. Defaults to 100.
   optional int32 limit = 4;
+
+  // Optional. Only measurements with this warning level. Not set means no filter.
   optional WarningLevel warning_level = 5;
 }
 
+// Response for ListMeasurements.
 message ListMeasurementsResponse {
+  // The matching measurements.
   repeated Measurement measurements = 1;
+
+  // Number of matches before `limit` is applied.
   int32 total_count = 2;
 }
 
+// Request for GetLatestMeasurement.
 message GetLatestMeasurementRequest {
+  // Required. ID of the station, like `ST-001`.
   string station_id = 1;
 }
 
+// A reading of a station at a point in time.
 message Measurement {
+  // ID of the station, like `ST-001`.
   string station_id = 1;
+
+  // Timestamp of this measurement.
   google.protobuf.Timestamp timestamp = 2;
+
+  // Water level in cm.
   double water_level = 3;
+
+  // Discharge in m³/s.
   double flow_rate = 4;
+
+  // Rainfall in mm/h.
   double rainfall = 5;
+
+  // Temperature in °C.
   double temperature = 6;
+
+  // Battery level of the station in %, from 0 to 100.
   double battery_level = 7;
+
+  // Technical state of the station.
   StationStatus station_status = 8;
+
+  // Warning level of this measurement, calculated from its water level.
   WarningLevel warning_level = 9;
 }
 
+// Request for ListStations.
 message ListStationsRequest {
+  // Optional. Only stations on this river. Case-insensitive. Empty means no filter.
   string river = 1;
+
+  // Optional. Only stations with this `is_active` value. Not set means no filter.
   optional bool is_active = 2;
+
+  // Optional. Only stations with this current warning level. Not set means no filter.
   optional WarningLevel warning_level = 3;
 }
 
+// Response for ListStations.
 message ListStationsResponse {
+  // The matching stations.
   repeated Station stations = 1;
+
+  // Number of matches.
   int32 total_count = 2;
 }
 
+// Request for GetStation.
 message GetStationRequest {
+  // Required. ID of the station, like `ST-001`.
   string station_id = 1;
 }
 
+// A monitoring station on a river that records water levels and environmental data.
 message Station {
+  // ID of the station, like `ST-001`.
   string id = 1;
+
+  // Name of the station, like `Station Vienna`.
   string name = 2;
+
+  // River of the station, like `Donau`.
   string river = 3;
+
+  // Geographic position of the station.
   Location location = 4;
+
+  // Normal water level of the station in cm.
   double normal_water_level = 5;
+
+  // Warning water level threshold of the station in cm.
+  // Water levels at or above this threshold produce a `WARNING_LEVEL_WARNING` warning level.
   double warning_water_level = 6;
+
+  // Critical water level threshold of the station in cm.
+  // Water levels at or above this threshold produce a `WARNING_LEVEL_CRITICAL` warning level.
   double critical_water_level = 7;
+
+  // Whether the station is active.
   bool is_active = 8;
-  WarningLevel warning_level = 9;
+
+  // Current warning level of the station.
+  WarningLevel current_warning_level = 9;
 }
 
+// Request for ListAlerts.
 message ListAlertsRequest {
+  // Optional. Only alerts from stations on this river. Case-insensitive. Empty means no filter.
   string river = 1;
+
+  // Optional. Only alerts with this warning level. Not set means no filter.
   optional WarningLevel warning_level = 2;
 }
 
+// Response for ListAlerts.
 message ListAlertsResponse {
+  // The matching alerts.
   repeated Alert alerts = 1;
+
+  // Number of matches.
   int32 total_count = 2;
 }
 
+// A current warning for a station whose latest measurement is at
+// `WARNING_LEVEL_WARNING` or `WARNING_LEVEL_CRITICAL` and is not outdated.
 message Alert {
-  string id = 1;
+  // ID of the station, like `ST-001`.
+  string station_id = 1;
+
+  // Name of the station, like `Station Vienna`.
   string name = 2;
+
+  // River of the station, like `Donau`.
   string river = 3;
+
+  // Geographic position of the station.
   Location location = 4;
+
+  // Timestamp of the latest measurement that produced this alert.
   google.protobuf.Timestamp timestamp = 5;
+
+  // Normal water level of the station in cm.
   double normal_water_level = 6;
+
+  // Warning water level threshold of the station in cm.
+  // Water levels at or above this threshold produce a `WARNING_LEVEL_WARNING` warning level.
   double warning_water_level = 7;
+
+  // Critical water level threshold of the station in cm.
+  // Water levels at or above this threshold produce a `WARNING_LEVEL_CRITICAL` warning level.
   double critical_water_level = 8;
+
+  // Water level of the latest measurement that produced this alert, in cm.
   double water_level = 9;
+
+  // Current warning level of the station.
   WarningLevel warning_level = 10;
 }
 
+// Request for SubscribeMeasurements.
 message SubscribeMeasurementsRequest {
+  // Required. ID of the station, like `ST-001`.
   string station_id = 1;
+
+  // Optional. Only measurements with this warning level. Not set means no filter.
   optional WarningLevel warning_level = 2;
 }
 
+// Geographic position of a station.
 message Location {
+  // Latitude in decimal degrees, from -90 to 90.
   double latitude = 1;
+
+  // Longitude in decimal degrees, from -180 to 180.
   double longitude = 2;
 }
 
+// Technical state of a station.
 enum StationStatus {
+  // No value was set. Never sent by the server. Invalid in requests.
   STATION_STATUS_UNSPECIFIED = 0;
+  // Working normally. Creates measurements.
   STATION_STATUS_ONLINE = 1;
+  // Battery is charging after running low. Creates measurements.
   STATION_STATUS_MAINTENANCE = 2;
+  // Failed. Creates no measurements.
   STATION_STATUS_OFFLINE = 3;
 }
 
+// Flood warning level, calculated by the server from the water level and the station's thresholds.
 enum WarningLevel {
+  // No value was set. Never sent by the server. Invalid in requests.
   WARNING_LEVEL_UNSPECIFIED = 0;
+  // Water level below the warning threshold.
   WARNING_LEVEL_NORMAL = 1;
+  // Water level at or above the warning threshold, but below the critical threshold.
   WARNING_LEVEL_WARNING = 2;
+  // Water level at or above the critical threshold.
   WARNING_LEVEL_CRITICAL = 3;
+  // No recent, valid measurement.
+  // The station is inactive, has no measurement yet, or its latest one is outdated.
   WARNING_LEVEL_UNKNOWN = 4;
 }
