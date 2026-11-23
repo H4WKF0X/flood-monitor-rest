@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(properties = "simulation.enabled=false")
+@SpringBootTest(properties = {"simulation.enabled=false","grpc.server.port=0"})
 @AutoConfigureMockMvc
 @Import(FixedClockConfig.class)
 class MeasurementControllerTest {

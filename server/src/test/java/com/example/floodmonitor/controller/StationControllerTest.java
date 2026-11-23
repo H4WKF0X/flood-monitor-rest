@@ -10,7 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = "simulation.enabled=false")
+@SpringBootTest(properties = {"simulation.enabled=false","grpc.server.port=0"})
 @AutoConfigureMockMvc
 class StationControllerTest {
     @Autowired

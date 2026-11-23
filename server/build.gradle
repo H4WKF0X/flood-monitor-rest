@@ -21,6 +21,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
     implementation project(':contract')
+    implementation "io.grpc:grpc-services:${grpcVersion}"
     runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
