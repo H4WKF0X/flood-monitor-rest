@@ -40,7 +40,7 @@ public class StationController {
                                            @RequestParam(name = "river", required = false) String riverFilter,
                                            @RequestParam(name = "isActive", required = false) Boolean isActiveFilter,
                                            @RequestParam(name = "warningLevel", required = false) WarningLevel warningLevelFilter) {
-        return stationService.getStations(riverFilter, isActiveFilter, warningLevelFilter);
+        return RestMapper.toStationListResponse(stationService.getStations(riverFilter, isActiveFilter, warningLevelFilter));
     }
 
     @GetMapping("/stations/{id}")
@@ -48,7 +48,7 @@ public class StationController {
     @ApiResponse(responseCode = "200", description = "OK")
     @ApiResponse(responseCode = "404", description = "Station not found", content = @Content(schema = @Schema(implementation = ApiError.class)))
     public StationResponse getStationById(@PathVariable String id) {
-        return stationService.getStationById(id);
+        return RestMapper.toStationResponse(stationService.getStationById(id));
     }
 
     @PostMapping(value="/stations",

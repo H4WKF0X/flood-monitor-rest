@@ -1,16 +1,14 @@
 package com.example.floodmonitor.service;
 
-import com.example.floodmonitor.dto.StationListResponse;
-import com.example.floodmonitor.dto.StationResponse;
 import com.example.floodmonitor.exception.StationAlreadyExistsException;
 import com.example.floodmonitor.exception.StationNotFoundException;
 import com.example.floodmonitor.model.Station;
+import com.example.floodmonitor.model.StationWithWarningLevel;
 import com.example.floodmonitor.model.WarningLevel;
 import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class StationService {
@@ -22,17 +20,16 @@ public class StationService {
         this.warningLevelService = warningLevelService;
     }
 
-    public StationListResponse getStations(String riverFilter, Boolean isActiveFilter, WarningLevel warningLevelFilter) {
-        List<StationResponse> stationResponses = stationRepository.findAll().stream().map(this::toStationResponse)
-                .filter(s -> riverFilter == null || s.river().equalsIgnoreCase(riverFilter))
-                .filter(s -> isActiveFilter == null || s.isActive() == isActiveFilter)
-                .filter(s -> warningLevelFilter == null || s.currentWarningLevel() == warningLevelFilter)
+    public List<StationWithWarningLevel> getStations(String riverFilter, Boolean isActiveFilter, WarningLevel warningLevelFilter) {
+        return stationRepository.findAll().stream().map(this::toStationWithWarningLevel)
+                .filter(s -> riverFilter == null || s.station().river().equalsIgnoreCase(riverFilter))
+                .filter(s -> isActiveFilter == null || s.station().isActive() == isActiveFilter)
+                .filter(s -> warningLevelFilter == null || s.warningLevel() == warningLevelFilter)
                 .toList();
-        return new StationListResponse(stationResponses,  stationResponses.size());
     }
 
-    public StationResponse getStationById(String id) {
-        return stationRepository.findById(id).map(this::toStationResponse).orElseThrow(() -> new StationNotFoundException(id));
+    public StationWithWarningLevel getStationById(String id) {
+        return stationRepository.findById(id).map(this::toStationWithWarningLevel).orElseThrow(() -> new StationNotFoundException(id));
     }
 
     public void addStation(Station station) {
@@ -40,7 +37,7 @@ public class StationService {
     }
 
 
-    private StationResponse toStationResponse(Station s) {
-        return new StationResponse(s.id(), s.name(), s.river(), s.location(), s.normalWaterLevel(), s.warningWaterLevel(), s.criticalWaterLevel(), s.isActive(), warningLevelService.getCurrentWarningLevel(s));
+    private StationWithWarningLevel toStationWithWarningLevel(Station s) {
+        return new StationWithWarningLevel(s, warningLevelService.getCurrentWarningLevel(s));
     }
 }
