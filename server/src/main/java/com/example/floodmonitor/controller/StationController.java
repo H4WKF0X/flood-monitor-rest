@@ -3,6 +3,7 @@ package com.example.floodmonitor.controller;
 import com.example.floodmonitor.dto.ApiError;
 import com.example.floodmonitor.dto.StationListResponse;
 import com.example.floodmonitor.dto.StationResponse;
+import com.example.floodmonitor.exception.InvalidRequestException;
 import com.example.floodmonitor.model.Station;
 
 import com.example.floodmonitor.model.WarningLevel;
@@ -60,8 +61,25 @@ public class StationController {
     @ApiResponse(responseCode = "409", description = "Station already exists", content = @Content(schema = @Schema(implementation = ApiError.class)))
     @ApiResponse(responseCode = "415", description = "Unsupported body format", content = @Content(schema = @Schema(implementation = ApiError.class)))
     public ResponseEntity<Station> postStation(@RequestBody Station station) {
+        requireNonBlank(station.id(), "id");
+        requireNonBlank(station.name(), "name");
+        requireNonBlank(station.river(), "river");
+        requireNonNull(station.location(), "location");
+
         stationService.addStation(station);
         URI location = URI.create("/api/v1/stations/" + station.id());
         return ResponseEntity.created(location).body(station);
+    }
+
+    private void requireNonBlank(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new InvalidRequestException("Field '" + field + "' is required");
+        }
+    }
+
+    private void requireNonNull(Object value, String field) {
+        if (value == null) {
+            throw new InvalidRequestException("Field '" + field + "' is required");
+        }
     }
 }

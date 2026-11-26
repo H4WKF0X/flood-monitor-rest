@@ -8,7 +8,7 @@ option java_package = "com.example.floodmonitor.grpc.v1";
 
 service FloodMonitorService {
   // Lists the measurements of a station, optionally filtered by `start_time`, `end_time` and
-  // `warning_level`. Results are ordered by timestamp, oldest first. `limit` keeps the first N results.
+  // `warning_level`. Results are ordered by timestamp, newest first. `limit` keeps the first N results.
   // Filters are applied before `limit`.
   rpc ListMeasurements(ListMeasurementsRequest) returns (ListMeasurementsResponse);
 
@@ -41,7 +41,7 @@ message ListMeasurementsRequest {
   // Optional. Only measurements at or before this timestamp. Not set means no filter.
   google.protobuf.Timestamp end_time = 3;
 
-  // Optional. Maximum number of measurements, from 1 to 1000. Defaults to 100.
+  // Optional. Maximum number of measurements, from 1 to 20160. Defaults to 20160.
   optional int32 limit = 4;
 
   // Optional. Only measurements with this warning level. Not set means no filter.
