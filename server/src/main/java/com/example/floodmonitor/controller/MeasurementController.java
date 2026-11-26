@@ -34,7 +34,7 @@ public class MeasurementController {
     @ApiResponse(responseCode = "200", description = "OK")
     @ApiResponse(responseCode = "404", description = "Station not found or no measurements yet", content = @Content(schema = @Schema(implementation = ApiError.class)))
     public MeasurementResponse getLatestMeasurement(@PathVariable String id) {
-        return measurementService.getLatestMeasurement(id);
+        return RestMapper.toMeasurementResponse(measurementService.getLatestMeasurement(id));
     }
 
     @GetMapping("/stations/{id}/measurements")
@@ -50,7 +50,7 @@ public class MeasurementController {
                                                                    @Parameter(description = "1 to ${api.measurements.maxLimit}")
                                                                    @RequestParam(name = "limit", required = false, defaultValue = "${api.measurements.defaultLimit}") Integer limit,
                                                                    @RequestParam(name = "warningLevel", required = false) WarningLevel warningLevelFilter) {
-        return measurementService.getMeasurements(id, fromFilter, toFilter, limit, warningLevelFilter);
+        return RestMapper.toMeasurementListResponse(measurementService.getMeasurements(id, fromFilter, toFilter, limit, warningLevelFilter));
     }
 
     @GetMapping("/stations/{id}/statistics")

@@ -1,7 +1,5 @@
 package com.example.floodmonitor.service;
 
-import com.example.floodmonitor.dto.MeasurementListResponse;
-import com.example.floodmonitor.dto.MeasurementResponse;
 import com.example.floodmonitor.dto.StatisticsResponse;
 import com.example.floodmonitor.exception.InvalidRequestException;
 import com.example.floodmonitor.exception.NoMeasurementForStationException;
@@ -35,25 +33,18 @@ public class MeasurementService {
         this.maxLimit = maxLimit;
     }
 
-    public MeasurementListResponse getMeasurements(String id, Instant fromFilter, Instant toFilter, int limit, WarningLevel warningLevelFilter) {
+    public List<Measurement> getMeasurements(String id, Instant fromFilter, Instant toFilter, int limit, WarningLevel warningLevelFilter) {
         stationRepository.findById(id).orElseThrow(() -> new StationNotFoundException(id));
         if (limit <= 0 || limit > maxLimit) throw new InvalidRequestException("Parameter 'limit' must be between 1 and " +  maxLimit);
 
-        List<Measurement> filtered = getTimeFilteredMeasurements(id, fromFilter, toFilter).stream()
+        return getTimeFilteredMeasurements(id, fromFilter, toFilter).stream()
                 .filter(m -> warningLevelFilter == null || m.warningLevel() == warningLevelFilter)
-                .toList();
-
-        List<MeasurementResponse> responses = filtered.stream()
-                .limit(limit)
-                .map(this::toMeasurementResponse)
-                .toList();
-
-        return new MeasurementListResponse(responses, filtered.size());
+                .limit(limit).toList();
     }
 
-    public MeasurementResponse getLatestMeasurement(String id){
+    public Measurement getLatestMeasurement(String id){
         stationRepository.findById(id).orElseThrow(() -> new StationNotFoundException(id));
-        return measurementRepository.getLastMeasurement(id).map(this::toMeasurementResponse).orElseThrow(() -> new NoMeasurementForStationException(id));
+        return measurementRepository.getLastMeasurement(id).orElseThrow(() -> new NoMeasurementForStationException(id));
     }
 
     public StatisticsResponse getStatistics(String id, Instant fromFilter, Instant toFilter) {
@@ -68,10 +59,6 @@ public class MeasurementService {
         return measurementHistory.stream()
                 .filter(m -> fromFilter == null || !m.timestamp().isBefore(fromFilter))
                 .filter(m -> toFilter == null || !m.timestamp().isAfter(toFilter)).toList();
-    }
-
-    private MeasurementResponse toMeasurementResponse(Measurement m) {
-        return new MeasurementResponse(m.stationId(), m.timestamp(), round2(m.waterLevel()), round2(m.flowRate()), round2(m.rainfall()), round2(m.temperature()), round2(m.batteryLevel()), m.status(), m.warningLevel());
     }
 
     private StatisticsResponse computeStatisticsResponse(List<Measurement> measurements) {
