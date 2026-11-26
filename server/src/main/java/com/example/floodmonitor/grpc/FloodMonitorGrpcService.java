@@ -18,6 +18,7 @@ import com.example.floodmonitor.service.StationService;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -29,10 +30,13 @@ public class FloodMonitorGrpcService extends FloodMonitorServiceGrpc.FloodMonito
     private final MeasurementService measurementService;
     private final AlertService alertService;
 
-    public FloodMonitorGrpcService(StationService stationService, MeasurementService measurementService,  AlertService alertService) {
+    private final int defaultLimit;
+    public FloodMonitorGrpcService(StationService stationService, MeasurementService measurementService,
+                                   AlertService alertService, @Value("${api.measurements.defaultLimit}") int defaultLimit) {
         this.stationService = stationService;
         this.measurementService = measurementService;
         this.alertService = alertService;
+        this.defaultLimit = defaultLimit;
     }
 
     @Override
@@ -40,14 +44,14 @@ public class FloodMonitorGrpcService extends FloodMonitorServiceGrpc.FloodMonito
         String stationId = request.getStationId();
 
         if (stationId.isBlank()) {
-            responseObserver.onError(getCorrespondingStatusRuntimeException(new InvalidRequestException("stationId is required")));
+            responseObserver.onError(getCorrespondingStatusRuntimeException(new InvalidRequestException("station_id is required")));
             return;
         }
 
-        Instant start_time = request.hasStartTime() ? CommonMapper.toDomain(request.getStartTime()) : null;
-        Instant end_time = request.hasEndTime() ? CommonMapper.toDomain(request.getEndTime()) : null;
+        Instant startTime = request.hasStartTime() ? CommonMapper.toDomain(request.getStartTime()) : null;
+        Instant endTime = request.hasEndTime() ? CommonMapper.toDomain(request.getEndTime()) : null;
 
-        int limit = request.hasLimit() ? request.getLimit() : 20160;
+        int limit = request.hasLimit() ? request.getLimit() : defaultLimit;
 
         WarningLevel warningLevelFilter;
 
@@ -61,7 +65,7 @@ public class FloodMonitorGrpcService extends FloodMonitorServiceGrpc.FloodMonito
         List<Measurement> measurements;
 
         try {
-            measurements = measurementService.getMeasurements(stationId, start_time, end_time, limit, warningLevelFilter);
+            measurements = measurementService.getMeasurements(stationId, startTime, endTime, limit, warningLevelFilter);
         } catch (StationNotFoundException | InvalidRequestException e) {
             responseObserver.onError(getCorrespondingStatusRuntimeException(e));
             return;
@@ -161,7 +165,7 @@ public class FloodMonitorGrpcService extends FloodMonitorServiceGrpc.FloodMonito
         List<Alert> alerts = alertService.getAlerts(riverFilter, warningLevelFilter);
         List<com.example.floodmonitor.grpc.v1.Alert> grpcAlerts = alerts.stream().map(AlertMapper::toProto).toList();
 
-        responseObserver.onNext(ListAlertsResponse.newBuilder().addAllAlerts(grpcAlerts).build());
+        responseObserver.onNext(ListAlertsResponse.newBuilder().addAllAlerts(grpcAlerts).setTotalCount(grpcAlerts.size()).build());
         responseObserver.onCompleted();
     }
 
