@@ -54,7 +54,7 @@ public class MeasurementService {
     }
 
     private List<Measurement> getTimeFilteredMeasurements(String id, Instant fromFilter, Instant toFilter) {
-        if (fromFilter != null && toFilter != null && fromFilter.isAfter(toFilter)) throw new InvalidRequestException("Parameter 'from' must not be after 'to'");
+        if (fromFilter != null && toFilter != null && fromFilter.isAfter(toFilter)) throw new InvalidRequestException("start of the time range must not be after its end");
         List<Measurement> measurementHistory = measurementRepository.getMeasurementHistory(id);
         return measurementHistory.stream()
                 .filter(m -> fromFilter == null || !m.timestamp().isBefore(fromFilter))

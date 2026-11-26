@@ -26,7 +26,6 @@ public class GrpcServerLifecycle implements SmartLifecycle {
     List<BindableService> serviceList;
     Server server;
 
-    @Autowired
     public GrpcServerLifecycle(@Value("${grpc.server.port}") int port,
                                ServerBuilder<?> serverBuilder, List<BindableService> serviceList) {
         this.port = port;

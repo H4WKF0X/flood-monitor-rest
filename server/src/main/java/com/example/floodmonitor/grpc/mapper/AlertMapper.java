@@ -4,7 +4,9 @@ package com.example.floodmonitor.grpc.mapper;
 import com.example.floodmonitor.model.Alert;
 
 public class AlertMapper {
-    public com.example.floodmonitor.grpc.v1.Alert toProto(Alert a) {
+    private  AlertMapper() {}
+
+    public static com.example.floodmonitor.grpc.v1.Alert toProto(Alert a) {
         return com.example.floodmonitor.grpc.v1.Alert.newBuilder()
                 .setStationId(a.stationId()).setName(a.name()).setRiver(a.river())
                 .setLocation(CommonMapper.toProto(a.location()))
