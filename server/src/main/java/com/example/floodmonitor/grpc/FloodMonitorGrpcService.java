@@ -8,10 +8,10 @@ import com.example.floodmonitor.grpc.mapper.CommonMapper;
 import com.example.floodmonitor.grpc.mapper.MeasurementMapper;
 import com.example.floodmonitor.grpc.mapper.StationMapper;
 import com.example.floodmonitor.grpc.v1.*;
-import com.example.floodmonitor.model.StationWithWarningLevel;
-import com.example.floodmonitor.model.WarningLevel;
-import com.example.floodmonitor.model.Measurement;
+import com.example.floodmonitor.model.*;
 import com.example.floodmonitor.model.Alert;
+import com.example.floodmonitor.model.Measurement;
+import com.example.floodmonitor.model.WarningLevel;
 import com.example.floodmonitor.service.AlertService;
 import com.example.floodmonitor.service.MeasurementService;
 import com.example.floodmonitor.service.StationService;
@@ -62,7 +62,7 @@ public class FloodMonitorGrpcService extends FloodMonitorServiceGrpc.FloodMonito
             return;
         }
 
-        List<Measurement> measurements;
+        MeasurementsWithTotalCount measurements;
 
         try {
             measurements = measurementService.getMeasurements(stationId, startTime, endTime, limit, warningLevelFilter);
@@ -71,9 +71,9 @@ public class FloodMonitorGrpcService extends FloodMonitorServiceGrpc.FloodMonito
             return;
         }
 
-        List<com.example.floodmonitor.grpc.v1.Measurement> grpcMeasurements = measurements.stream().map(MeasurementMapper::toProto).toList();
+        List<com.example.floodmonitor.grpc.v1.Measurement> grpcMeasurements = measurements.measurement().stream().map(MeasurementMapper::toProto).toList();
 
-        responseObserver.onNext(ListMeasurementsResponse.newBuilder().addAllMeasurements(grpcMeasurements).setTotalCount(grpcMeasurements.size()).build());
+        responseObserver.onNext(ListMeasurementsResponse.newBuilder().addAllMeasurements(grpcMeasurements).setTotalCount(measurements.totalCount()).build());
         responseObserver.onCompleted();
     }
 
@@ -82,7 +82,7 @@ public class FloodMonitorGrpcService extends FloodMonitorServiceGrpc.FloodMonito
         String stationId = request.getStationId();
 
         if (stationId.isBlank()) {
-            responseObserver.onError(getCorrespondingStatusRuntimeException(new InvalidRequestException("stationId is required")));
+            responseObserver.onError(getCorrespondingStatusRuntimeException(new InvalidRequestException("station_id is required")));
             return;
         }
 
@@ -129,7 +129,7 @@ public class FloodMonitorGrpcService extends FloodMonitorServiceGrpc.FloodMonito
         String stationId = request.getStationId();
 
         if (stationId.isBlank()) {
-            responseObserver.onError(getCorrespondingStatusRuntimeException(new InvalidRequestException("stationId is required")));
+            responseObserver.onError(getCorrespondingStatusRuntimeException(new InvalidRequestException("station_id is required")));
             return;
         }
 

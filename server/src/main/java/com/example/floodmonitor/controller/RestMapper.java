@@ -23,9 +23,9 @@ public class RestMapper {
         return new MeasurementResponse(m.stationId(), m.timestamp(), round2(m.waterLevel()), round2(m.flowRate()), round2(m.rainfall()), round2(m.temperature()), round2(m.batteryLevel()), m.status(), m.warningLevel());
     }
 
-    public static MeasurementListResponse toMeasurementListResponse(List<Measurement> measurements) {
-        int totalCount = measurements.size();
-        List<MeasurementResponse> measurementResponses = measurements.stream().map(RestMapper::toMeasurementResponse).toList();
+    public static MeasurementListResponse toMeasurementListResponse(MeasurementsWithTotalCount measurements) {
+        int totalCount = measurements.totalCount();
+        List<MeasurementResponse> measurementResponses = measurements.measurement().stream().map(RestMapper::toMeasurementResponse).toList();
 
         return new MeasurementListResponse(measurementResponses, totalCount);
     }

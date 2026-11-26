@@ -5,6 +5,7 @@ import com.example.floodmonitor.exception.InvalidRequestException;
 import com.example.floodmonitor.exception.NoMeasurementForStationException;
 import com.example.floodmonitor.exception.StationNotFoundException;
 import com.example.floodmonitor.model.Measurement;
+import com.example.floodmonitor.model.MeasurementsWithTotalCount;
 import com.example.floodmonitor.model.WarningLevel;
 import com.example.floodmonitor.repository.MeasurementRepository;
 import com.example.floodmonitor.repository.StationRepository;
@@ -33,13 +34,15 @@ public class MeasurementService {
         this.maxLimit = maxLimit;
     }
 
-    public List<Measurement> getMeasurements(String id, Instant fromFilter, Instant toFilter, int limit, WarningLevel warningLevelFilter) {
+    public MeasurementsWithTotalCount getMeasurements(String id, Instant fromFilter, Instant toFilter, int limit, WarningLevel warningLevelFilter) {
         stationRepository.findById(id).orElseThrow(() -> new StationNotFoundException(id));
         if (limit <= 0 || limit > maxLimit) throw new InvalidRequestException("Parameter 'limit' must be between 1 and " +  maxLimit);
 
-        return getTimeFilteredMeasurements(id, fromFilter, toFilter).stream()
-                .filter(m -> warningLevelFilter == null || m.warningLevel() == warningLevelFilter)
-                .limit(limit).toList();
+        List<Measurement> filteredList = getTimeFilteredMeasurements(id, fromFilter, toFilter).stream()
+                .filter(m -> warningLevelFilter == null || m.warningLevel() == warningLevelFilter).toList();
+
+        int totalCount = filteredList.size();
+        return new MeasurementsWithTotalCount(filteredList.subList(0, Math.min(limit, filteredList.size())), totalCount);
     }
 
     public Measurement getLatestMeasurement(String id){

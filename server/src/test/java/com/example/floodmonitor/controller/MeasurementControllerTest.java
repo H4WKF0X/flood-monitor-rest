@@ -72,7 +72,7 @@ class MeasurementControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.error").value("Bad Request"))
-                .andExpect(jsonPath("$.message").value("Parameter 'from' must not be after 'to'"))
+                .andExpect(jsonPath("$.message").value("start of the time range must not be after its end"))
                 .andExpect(jsonPath("$.path").value("/api/v1/stations/ST-003/measurements"));
     }
     @Test
