@@ -1,11 +1,6 @@
 package com.example.floodmonitor.service;
 
-import com.example.floodmonitor.dto.AlertListResponse;
-import com.example.floodmonitor.dto.AlertResponse;
-import com.example.floodmonitor.model.Measurement;
-import com.example.floodmonitor.model.Station;
-import com.example.floodmonitor.model.StationStatus;
-import com.example.floodmonitor.model.WarningLevel;
+import com.example.floodmonitor.model.*;
 import com.example.floodmonitor.repository.MeasurementRepository;
 import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.stereotype.Service;
@@ -17,7 +12,7 @@ import java.util.*;
 @Service
 public class AlertService {
     private static final List<WarningLevel> ALERT_ORDER = List.of(WarningLevel.CRITICAL, WarningLevel.WARNING, WarningLevel.UNKNOWN);
-    private static final Comparator<AlertResponse> ALERT_COMPARATOR = Comparator.comparing((AlertResponse a) -> ALERT_ORDER.indexOf(a.warningLevel())).thenComparing(AlertResponse::stationId);
+    private static final Comparator<Alert> ALERT_COMPARATOR = Comparator.comparing((Alert a) -> ALERT_ORDER.indexOf(a.warningLevel())).thenComparing(Alert::stationId);
 
     private final StationRepository stationRepository;
     private final MeasurementRepository measurementRepository;
@@ -29,8 +24,8 @@ public class AlertService {
         this.warningLevelService = warningLevelService;
     }
 
-    public AlertListResponse getAlerts(String riverFilter, WarningLevel warningLevelFilter) {
-        List<AlertResponse> alertResponses = new ArrayList<>();
+    public List<Alert> getAlerts(String riverFilter, WarningLevel warningLevelFilter) {
+        List<Alert> alertResponses = new ArrayList<>();
 
         List<Station> stations = stationRepository.findAll();
         for (Station station : stations) {
@@ -38,17 +33,14 @@ public class AlertService {
             WarningLevel warningLevel = warningLevelService.getCurrentWarningLevel(station);
             if (!station.isActive() || lastMeasurement == null || lastMeasurement.status() == StationStatus.OFFLINE
                     || warningLevel == WarningLevel.NORMAL || (warningLevelFilter != null && warningLevelFilter != warningLevel)) continue;
-            alertResponses.add(toAlertResponse(station, lastMeasurement,  warningLevel));
+            alertResponses.add(new Alert(station.id(), station.name(), station.river(), station.location(), lastMeasurement.timestamp(), station.normalWaterLevel(), station.warningWaterLevel(), station.criticalWaterLevel(), round2(lastMeasurement.waterLevel()), warningLevel));
         }
 
         alertResponses.sort(ALERT_COMPARATOR);
-        alertResponses = alertResponses.stream().filter(a -> riverFilter == null || a.river().equalsIgnoreCase(riverFilter)).toList();
-        return new AlertListResponse(alertResponses, alertResponses.size());
+        return alertResponses.stream().filter(a -> riverFilter == null || a.river().equalsIgnoreCase(riverFilter)).toList();
     }
 
-    private AlertResponse toAlertResponse(Station s, Measurement m, WarningLevel w) {
-        return new AlertResponse(s.id(), s.name(), s.river(), s.location(), m.timestamp(), s.normalWaterLevel(), s.warningWaterLevel(), s.criticalWaterLevel(), round2(m.waterLevel()), w);
-    }
+
 
     private static double round2(double value) {
         return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).doubleValue();

@@ -35,6 +35,6 @@ public class AlertController {
     public AlertListResponse getAlerts(@Parameter(description = "Case-insensitive")
                                        @RequestParam(name = "river", required = false) String riverFilter,
                                        @RequestParam(name = "warningLevel", required = false) WarningLevel warningLevelFilter) {
-        return alertService.getAlerts(riverFilter, warningLevelFilter);
+        return RestMapper.toAlertListResponse(alertService.getAlerts(riverFilter, warningLevelFilter));
     }
 }

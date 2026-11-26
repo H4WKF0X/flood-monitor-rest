@@ -1,11 +1,7 @@
 package com.example.floodmonitor.controller;
 
-import com.example.floodmonitor.dto.MeasurementListResponse;
-import com.example.floodmonitor.dto.MeasurementResponse;
-import com.example.floodmonitor.dto.StationListResponse;
-import com.example.floodmonitor.dto.StationResponse;
-import com.example.floodmonitor.model.Measurement;
-import com.example.floodmonitor.model.StationWithWarningLevel;
+import com.example.floodmonitor.dto.*;
+import com.example.floodmonitor.model.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -32,6 +28,17 @@ public class RestMapper {
         List<MeasurementResponse> measurementResponses = measurements.stream().map(RestMapper::toMeasurementResponse).toList();
 
         return new MeasurementListResponse(measurementResponses, totalCount);
+    }
+
+    private static AlertResponse toAlertResponse(Alert a) {
+        return new AlertResponse(a.stationId(), a.name(), a.river(), a.location(), a.timestamp(), a.normalWaterLevel(), a.warningWaterLevel(), a.criticalWaterLevel(), round2(a.waterLevel()), a.warningLevel());
+    }
+
+    public static AlertListResponse toAlertListResponse(List<Alert> alerts) {
+        int totalCount = alerts.size();
+        List<AlertResponse> alertResponses = alerts.stream().map(RestMapper::toAlertResponse).toList();
+
+        return new AlertListResponse(alertResponses, totalCount);
     }
 
     private static double round2(double value) {
