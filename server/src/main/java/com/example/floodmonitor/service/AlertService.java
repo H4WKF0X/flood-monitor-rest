@@ -32,7 +32,7 @@ public class AlertService {
             Measurement lastMeasurement = measurementRepository.getLastMeasurement(station.id()).orElse(null);
             WarningLevel warningLevel = warningLevelService.getCurrentWarningLevel(station);
             if (!station.isActive() || lastMeasurement == null || lastMeasurement.status() == StationStatus.OFFLINE
-                    || warningLevel == WarningLevel.NORMAL || (warningLevelFilter != null && warningLevelFilter != warningLevel)) continue;
+                    || warningLevel == WarningLevel.NORMAL || warningLevel == WarningLevel.UNKNOWN ||(warningLevelFilter != null && warningLevelFilter != warningLevel)) continue;
             alertResponses.add(new Alert(station.id(), station.name(), station.river(), station.location(), lastMeasurement.timestamp(), station.normalWaterLevel(), station.warningWaterLevel(), station.criticalWaterLevel(), round2(lastMeasurement.waterLevel()), warningLevel));
         }
 

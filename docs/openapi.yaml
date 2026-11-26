@@ -74,8 +74,17 @@ paths:
               $ref: '#/components/schemas/Station'
         required: true
       responses:
-        "415":
-          description: Unsupported body format
+        "409":
+          description: Station already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        "400":
+          description: Malformed request body
           content:
             application/json:
               schema:
@@ -92,17 +101,8 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/Station'
-        "409":
-          description: Station already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        "400":
-          description: Malformed request body
+        "415":
+          description: Unsupported body format
           content:
             application/json:
               schema:
@@ -311,8 +311,8 @@ paths:
       tags:
       - Alerts
       summary: List active alerts
-      description: "Active, non-offline stations at WARNING, CRITICAL or UNKNOWN,\
-        \ most severe first."
+      description: "Active, non-offline, known stations at WARNING or CRITICAL, more\
+        \ severe first."
       operationId: getAlerts
       parameters:
       - name: river

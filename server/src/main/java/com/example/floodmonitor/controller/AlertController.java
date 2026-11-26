@@ -29,7 +29,7 @@ public class AlertController {
     }
 
     @GetMapping("/alerts")
-    @Operation(summary = "List active alerts", description = "Active, non-offline stations at WARNING, CRITICAL or UNKNOWN, most severe first.")
+    @Operation(summary = "List active alerts", description = "Active, non-offline, known stations at WARNING or CRITICAL, more severe first.")
     @ApiResponse(responseCode = "200", description = "OK")
     @ApiResponse(responseCode = "400", description = "Invalid parameter value", content = @Content(schema = @Schema(implementation = ApiError.class)))
     public AlertListResponse getAlerts(@Parameter(description = "Case-insensitive")
