@@ -1,6 +1,7 @@
 package com.example.floodmonitor.grpc.mapper;
 
 import com.example.floodmonitor.exception.InvalidRequestException;
+import com.example.floodmonitor.model.Location;
 import com.example.floodmonitor.model.WarningLevel;
 
 import java.time.Instant;
@@ -25,6 +26,13 @@ public class CommonMapper {
             case WARNING_LEVEL_CRITICAL -> WarningLevel.CRITICAL;
             case WARNING_LEVEL_UNKNOWN -> WarningLevel.UNKNOWN;
         };
+    }
+
+    public static com.example.floodmonitor.grpc.v1.Location toProto(Location l) {
+        return com.example.floodmonitor.grpc.v1.Location.newBuilder()
+                .setLatitude(l.latitude())
+                .setLongitude(l.longitude())
+                .build();
     }
 
     public static com.google.protobuf.Timestamp toProto(Instant t) {
