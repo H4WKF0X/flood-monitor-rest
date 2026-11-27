@@ -60,7 +60,7 @@ public class SimulationService {
         this.intervalMs = intervalMs;
     }
 
-    public void step(Instant timestamp, List<Station> stations) {
+    public List<Measurement> step(Instant timestamp, List<Station> stations) {
         double hours = intervalMs / 3_600_000.0;
 
         rainField.advance(stations);
@@ -72,6 +72,8 @@ public class SimulationService {
             }
             byRiver.get(s.river()).add(s);
         }
+
+        List<Measurement> addedMeasurements = new ArrayList<>();
 
         for (Map.Entry<String, List<Station>> entry : byRiver.entrySet()) {
             String river = entry.getKey();
@@ -138,8 +140,11 @@ public class SimulationService {
                         temperature, battery, status, warningLevelService.getWarningLevel(s, waterLevel));
 
                 measurementRepository.saveMeasurement(measurement);
+                addedMeasurements.add(measurement);
             }
         }
+
+        return addedMeasurements;
     }
 
     public void prefill(Duration warmUp, Duration history, Instant now, List<Station> stations) {

@@ -1,5 +1,6 @@
 package com.example.floodmonitor.service;
 
+import com.example.floodmonitor.model.Measurement;
 import com.example.floodmonitor.model.Station;
 import com.example.floodmonitor.repository.StationRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,15 +26,18 @@ public class SimulationScheduler {
     private final Clock clock;
     private final SimulationService simulationService;
     private final StationRepository stationRepository;
+    private final MeasurementPublisher measurementPublisher;
 
     private final Duration warmUp;
     private final Duration history;
 
     public SimulationScheduler(Clock clock, SimulationService simulationService,  StationRepository stationRepository,
+                               MeasurementPublisher measurementPublisher,
                                @Value("${simulation.prefillWarmUp}") Duration warmUp, @Value("${simulation.prefillHistory}") Duration history) {
         this.clock = clock;
         this.simulationService = simulationService;
         this.stationRepository = stationRepository;
+        this.measurementPublisher = measurementPublisher;
 
         this.warmUp = warmUp;
         this.history = history;
@@ -53,6 +57,10 @@ public class SimulationScheduler {
             return;
         }
         List<Station> stations = stationRepository.findAll();
-        simulationService.step(Instant.now(clock).truncatedTo(ChronoUnit.SECONDS), stations);
+        List<Measurement> measurements = simulationService.step(Instant.now(clock).truncatedTo(ChronoUnit.SECONDS), stations);
+
+        for (Measurement measurement : measurements) {
+            measurementPublisher.announce(measurement);
+        }
     }
 }

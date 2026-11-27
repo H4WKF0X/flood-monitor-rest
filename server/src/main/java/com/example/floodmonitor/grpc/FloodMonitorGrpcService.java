@@ -13,30 +13,36 @@ import com.example.floodmonitor.model.Alert;
 import com.example.floodmonitor.model.Measurement;
 import com.example.floodmonitor.model.WarningLevel;
 import com.example.floodmonitor.service.AlertService;
+import com.example.floodmonitor.service.MeasurementPublisher;
 import com.example.floodmonitor.service.MeasurementService;
 import com.example.floodmonitor.service.StationService;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Service
 public class FloodMonitorGrpcService extends FloodMonitorServiceGrpc.FloodMonitorServiceImplBase {
     private final StationService stationService;
     private final MeasurementService measurementService;
     private final AlertService alertService;
+    private final MeasurementPublisher measurementPublisher;
 
     private final int defaultLimit;
     public FloodMonitorGrpcService(StationService stationService, MeasurementService measurementService,
-                                   AlertService alertService, @Value("${api.measurements.defaultLimit}") int defaultLimit) {
+                                   AlertService alertService, MeasurementPublisher measurementPublisher,
+                                   @Value("${api.measurements.defaultLimit}") int defaultLimit) {
         this.stationService = stationService;
         this.measurementService = measurementService;
         this.alertService = alertService;
         this.defaultLimit = defaultLimit;
+        this.measurementPublisher = measurementPublisher;
     }
 
     @Override
@@ -167,6 +173,45 @@ public class FloodMonitorGrpcService extends FloodMonitorServiceGrpc.FloodMonito
 
         responseObserver.onNext(ListAlertsResponse.newBuilder().addAllAlerts(grpcAlerts).setTotalCount(grpcAlerts.size()).build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void subscribeMeasurements(SubscribeMeasurementsRequest request, StreamObserver<com.example.floodmonitor.grpc.v1.Measurement> responseObserver) {
+        String stationId = request.getStationId();
+
+        if (stationId.isBlank()) {
+            responseObserver.onError(getCorrespondingStatusRuntimeException(new InvalidRequestException("station_id is required")));
+            return;
+        }
+
+        try {
+            stationService.getStationById(stationId);
+        } catch (StationNotFoundException e) {
+            responseObserver.onError(getCorrespondingStatusRuntimeException(e));
+            return;
+        }
+
+        WarningLevel warningLevelFilter;
+
+        try {
+            warningLevelFilter = request.hasWarningLevel() ? CommonMapper.toDomain(request.getWarningLevel()) : null;
+        } catch (InvalidRequestException e) {
+            responseObserver.onError(getCorrespondingStatusRuntimeException(e));
+            return;
+        }
+
+        Consumer<Measurement> listener = measurement -> {
+            if (measurement.warningLevel() == warningLevelFilter || warningLevelFilter == null) {
+                responseObserver.onNext(MeasurementMapper.toProto(measurement));
+            }
+        };
+
+        measurementPublisher.subscribe(stationId, listener);
+
+        ServerCallStreamObserver<com.example.floodmonitor.grpc.v1.Measurement> serverCallResponseObserver =
+                (ServerCallStreamObserver<com.example.floodmonitor.grpc.v1.Measurement>) responseObserver;
+
+        serverCallResponseObserver.setOnCancelHandler(() -> measurementPublisher.unsubscribe(stationId, listener));
     }
 
     private StatusRuntimeException getCorrespondingStatusRuntimeException(RuntimeException e) {
