@@ -28,10 +28,8 @@ import static com.example.floodmonitor.FixedClockConfig.NOW;
 import static com.example.floodmonitor.InProcessGrpcConfig.NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(properties = {"simulation.enabled=false","grpc.server.port=0"})
+@SpringBootTest(properties = "simulation.enabled=false")
 @Import({FixedClockConfig.class, InProcessGrpcConfig.class})
 public class FloodMonitorGrpcServiceTest {
     @Autowired
@@ -67,7 +65,7 @@ public class FloodMonitorGrpcServiceTest {
         GetStationRequest request = GetStationRequest.newBuilder().setStationId("ST-001").build();
         Station station = stub.getStation(request);
 
-        assertThat(station).isNotNull();
+        assertThat(station.getId()).isEqualTo("ST-001");
     }
 
     @Test
@@ -94,7 +92,7 @@ public class FloodMonitorGrpcServiceTest {
         GetStationRequest request = GetStationRequest.newBuilder().setStationId("ST-001").build();
         Station station = stub.getStation(request);
 
-        assertEquals(warningLevel, station.getCurrentWarningLevel());
+        assertThat(station.getCurrentWarningLevel()).isEqualTo(warningLevel);
     }
 
     @Test
@@ -102,7 +100,7 @@ public class FloodMonitorGrpcServiceTest {
         measurementRepository.saveMeasurement(measurement("ST-002", NOW.minusSeconds(10), 140));
 
         SubscribeMeasurementsRequest request = SubscribeMeasurementsRequest.newBuilder().setStationId("ST-002").build();
-        Iterator<com.example.floodmonitor.grpc.v1.Measurement> measurementObserver = stub.withDeadlineAfter(5, TimeUnit.SECONDS).subscribeMeasurements(request);
+        Iterator<com.example.floodmonitor.grpc.v1.Measurement> stream = stub.withDeadlineAfter(5, TimeUnit.SECONDS).subscribeMeasurements(request);
 
         for (int i = 0; i < 3; i++) {
             Measurement measurement = measurement("ST-002", NOW, 150 + i);
@@ -110,8 +108,8 @@ public class FloodMonitorGrpcServiceTest {
         }
 
         for (int i = 0; i < 3; i++) {
-            assertTrue(measurementObserver.hasNext());
-            assertEquals(150 + i, measurementObserver.next().getWaterLevel());
+            assertThat(stream.hasNext()).isTrue();
+            assertThat(stream.next().getWaterLevel()).isEqualTo(150 + i);
         }
     }
 
